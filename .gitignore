@@ -1,0 +1,25 @@
+/.cache/
+/.tmp/
+
+/build/
+/dist/
+
+/docs/build/
+/docs/dist/
+
+__pycache__/
+*.py[cod]
+
+/.tox/
+/.venv/
+/.python-version
+
+/htmlcov/
+/.coverage
+/.coverage.*
+
+# macOS
+.DS_Store
+
+# Windows
+[Dd]esktop.ini
