@@ -1,9 +1,11 @@
 import sys
-from collections.abc import Callable, Sequence
+from collections.abc import Callable
 from keyword import iskeyword
-from typing import Any
+from typing import Any, NoReturn
 
 import attrs
+
+from capf.exceptions import CliMessage, CliParsingError, CliSetupError
 
 
 class CapfError(Exception):
@@ -155,9 +157,65 @@ class Command:
 
 
 class Program:
-    def __init__(self, name: str, version: str = "") -> None:
+    """The program.
+
+    Parameters
+    ----------
+    name : str
+        Name of this program. This will be displayed when user request to print version.
+    version : str, default=""
+        Version of this program. This will be displayed when user request to print version.
+    exit_code_for_invalid_cli : int, default=2
+        Exit code used for invalid CLI arguments.
+    exit_code_for_unhandled_exception : int, default=2
+        Exit code used for any other unhandled exception.
+    """
+
+    def __init__(
+        self,
+        name: str,
+        version: str = "",
+        *,
+        exit_code_for_invalid_cli: int = 2,
+        exit_code_for_unhandled_exception: int = 2,
+    ) -> None:
         self.name = name
         self.version = version
 
-    def run(self, argv: Sequence[str] | None = None) -> None:
-        argv = argv if argv is not None else sys.argv[1:]
+        self.exit_code_for_invalid_cli = exit_code_for_invalid_cli
+        self.exit_code_for_unhandled_exception = exit_code_for_unhandled_exception
+
+    def run(self, argv: list[str] | None = None) -> int:
+        argv = self._resolve_argv(argv)
+
+        return 0
+
+    def run_and_exit(self, argv: list[str] | None = None) -> NoReturn:
+        argv = self._resolve_argv(argv)
+
+        try:
+            sys.exit(self.run(argv))
+        except CliMessage as e:
+            sys.exit(e.status)
+        except CliParsingError as e:
+            from rich.console import Console
+
+            console = Console(stderr=True)
+            console.print(e.message)
+            sys.exit(self.exit_code_for_invalid_cli)
+        except Exception:  # noqa: BLE001
+            from rich.console import Console
+
+            console = Console(stderr=True)
+            console.print_exception()
+            sys.exit(self.exit_code_for_unhandled_exception)
+
+    @staticmethod
+    def _resolve_argv(argv: list[str] | None) -> list[str]:
+        if argv is None:
+            return sys.argv
+        if not argv:
+            raise CliSetupError(
+                "Invalid argv: Empty list is not allowed. It must contain at least one item for program name."
+            )
+        return argv
