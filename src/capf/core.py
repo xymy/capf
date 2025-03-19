@@ -8,15 +8,11 @@ import attrs
 from capf.exceptions import CliMessage, CliParsingError, CliSetupError
 
 
-class CapfError(Exception):
-    pass
-
-
 def _check_dest(dest: str) -> None:
     if not dest.isidentifier():
-        raise CapfError(f"Invalid dest: {dest!r} is not a valid identifier.")
+        raise CliSetupError(f"Invalid dest: {dest!r} is not a valid identifier.")
     if iskeyword(dest):
-        raise CapfError(f"Invalid dest: {dest!r} is a keyword.")
+        raise CliSetupError(f"Invalid dest: {dest!r} is a keyword.")
 
 
 class Argument:
@@ -29,7 +25,7 @@ class Argument:
     @staticmethod
     def _parse_decl(decl: str) -> str:
         if not decl:
-            raise CapfError("Invalid decl: Empty string is not allowed.")
+            raise CliSetupError("Invalid decl: Empty string is not allowed.")
         return decl
 
     @staticmethod
@@ -56,7 +52,7 @@ class Option:
     @staticmethod
     def _parse_decls(*decls: str) -> tuple[list[OptionElement], list[OptionElement]]:
         if not decls:
-            raise CapfError("Invalid decls: At least one decl is required.")
+            raise CliSetupError("Invalid decls: At least one decl is required.")
 
         long_options: list[OptionElement] = []
         short_options: list[OptionElement] = []
@@ -64,21 +60,21 @@ class Option:
             if decl.startswith("--"):
                 prefix, text = "--", decl[2:]
                 if not text:
-                    raise CapfError("Invalid decls: Empty string following prefix is not allowed.")
+                    raise CliSetupError("Invalid decls: Empty string following prefix is not allowed.")
                 if len(text) < 2:
-                    raise CapfError(f"Invalid decls: Long option {decl!r} is too short.")
+                    raise CliSetupError(f"Invalid decls: Long option {decl!r} is too short.")
                 long_options.append(OptionElement(prefix=prefix, text=text))
             elif decl.startswith("-"):
                 prefix, text = "-", decl[1:]
                 if not text:
-                    raise CapfError("Invalid decls: Empty string following prefix is not allowed.")
+                    raise CliSetupError("Invalid decls: Empty string following prefix is not allowed.")
                 if len(text) > 1:
-                    raise CapfError(f"Invalid decls: Short option {decl!r} is too long.")
+                    raise CliSetupError(f"Invalid decls: Short option {decl!r} is too long.")
                 short_options.append(OptionElement(prefix=prefix, text=text))
             elif not decl:
-                raise CapfError("Invalid decls: Empty string is not allowed.")
+                raise CliSetupError("Invalid decls: Empty string is not allowed.")
             else:
-                raise CapfError(f"Invalid decls: {decl!r} does not start with prefix.")
+                raise CliSetupError(f"Invalid decls: {decl!r} does not start with prefix.")
         return long_options, short_options
 
     @staticmethod
