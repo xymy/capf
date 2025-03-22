@@ -25,12 +25,13 @@ select = [
     "LOG",    # flake8-logging
     "G",      # flake8-logging-format
     "PIE",    # flake8-pie
+    "PYI",    # flake8-pyi
     "PT",     # flake8-pytest-style
     "RSE",    # flake8-raise
     "SIM",    # flake8-simplify
     "SLOT",   # flake8-slots
     "TID",    # flake8-tidy-imports
-    "TCH",    # flake8-type-checking
+    "TC",     # flake8-type-checking
     "FLY",    # flynt
     "I",      # isort
     "C90",    # mccabe
@@ -45,6 +46,7 @@ select = [
     "PLE",    # pylint error
     "PLW",    # pylint warning
     "UP",     # pyupgrade
+    "FURB",   # refurb
     "RUF",
 ]
 ignore = [
