@@ -16,10 +16,11 @@ def _check_dest(dest: str) -> None:
 
 
 class Argument:
-    def __init__(self, decl: str, *, dest: str = "", nvals: int = 1, required: bool = True) -> None:
+    def __init__(self, id: str, decl: str, *, dest: str = "", nvals: int = 1, required: bool = True) -> None:
+        self.id = id
         self.argument = self._parse_decl(decl)
-        self.dest = self._parse_dest(dest, self.argument)
-        self.nvals = nvals
+        self.dest = self._parse_dest(dest, self.id)
+        self.nvals = self._parse_nvals(nvals)
         self.required = required
 
     @staticmethod
@@ -29,11 +30,16 @@ class Argument:
         return decl
 
     @staticmethod
-    def _parse_dest(dest: str, argument: str) -> str:
-        real_dest = dest or argument
-        real_dest = real_dest.replace("-", "_")
-        _check_dest(real_dest)
-        return real_dest
+    def _parse_dest(dest: str, id: str) -> str:
+        dest = dest or id
+        _check_dest(dest)
+        return dest
+
+    @staticmethod
+    def _parse_nvals(nvals: int) -> int:
+        if nvals not in (1, -1, 0):
+            raise CliSetupError("Invalid nvals: Value must be one of 1, -1 or 0.")
+        return nvals
 
 
 @attrs.define(kw_only=True)
@@ -43,10 +49,11 @@ class OptionElement:
 
 
 class Option:
-    def __init__(self, *decls: str, dest: str = "", nvals: int = 1, required: bool = False) -> None:
+    def __init__(self, id: str, *decls: str, dest: str = "", nvals: int = 1, required: bool = False) -> None:
+        self.id = id
         self.long_options, self.short_options = self._parse_decls(*decls)
-        self.dest = self._parse_dest(dest, self.long_options, self.short_options)
-        self.nvals = nvals
+        self.dest = self._parse_dest(dest, self.id)
+        self.nvals = self._parse_nvals(nvals)
         self.required = required
 
     @staticmethod
@@ -78,26 +85,22 @@ class Option:
         return long_options, short_options
 
     @staticmethod
-    def _parse_dest(dest: str, long_options: list[OptionElement], short_options: list[OptionElement]) -> str:
-        if dest:
-            real_dest = dest
-        elif long_options:
-            real_dest = long_options[0].text
-        else:
-            real_dest = short_options[0].text
-        real_dest = real_dest.replace("-", "_")
-        _check_dest(real_dest)
-        return real_dest
+    def _parse_dest(dest: str, id: str) -> str:
+        dest = dest or id
+        _check_dest(dest)
+        return dest
 
-
-class Flag(Option):
-    def __init__(self, *decls: str, dest: str = "") -> None:
-        super().__init__(*decls, dest=dest, nvals=0, required=False)
+    @staticmethod
+    def _parse_nvals(nvals: int) -> int:
+        if nvals not in (1, 0):
+            raise CliSetupError("Invalid nvals: Value must be one of 1 or 0.")
+        return nvals
 
 
 class OptionGroup:
-    def __init__(self, name: str) -> None:
-        self.name = name
+    def __init__(self, id: str, title: str) -> None:
+        self.id = id
+        self.title = title
         self.options: list[Option] = []
 
     def add(self, option: Option) -> None:
@@ -131,24 +134,21 @@ class Command:
         self.arguments.append(argument)
         return argument
 
-    def add_option(self, *args: Any, group: str = "", **kwargs: Any) -> Option:
+    def add_option(self, *args: Any, group_id: str = "", **kwargs: Any) -> Option:
         option = Option(*args, **kwargs)
         self.options.append(option)
-        self._add_option_group(option, group)
+        self._add_option_group(option, group_id)
         return option
 
-    def add_flag(self, *args: Any, group: str = "", **kwargs: Any) -> Flag:
-        flag = Flag(*args, **kwargs)
-        self.options.append(flag)
-        self._add_option_group(flag, group)
-        return flag
-
-    def _add_option_group(self, option: Option, group: str) -> None:
-        group = group or "Options"
-        option_group = self.option_groups.get(group)
-        if option_group is None:
-            option_group = OptionGroup(group)
-            self.option_groups[group] = option_group
+    def _add_option_group(self, option: Option, group_id: str) -> None:
+        if not group_id:
+            if not self.option_groups:
+                option_group = OptionGroup("options", "Options")
+                self.option_groups["options"] = option_group
+            else:
+                option_group = list(self.option_groups.values())[-1]
+        else:
+            option_group = self.option_groups[group_id]
         option_group.add(option)
 
 
