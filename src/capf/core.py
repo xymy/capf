@@ -5,7 +5,8 @@ from typing import Any, NoReturn
 
 import attrs
 
-from capf.exceptions import CliMessage, CliParsingError, CliSetupError
+from .exceptions import CliMessage, CliParsingError, CliSetupError
+from .groups import ArgumentGroup, CommandGroup, OptionGroup
 
 
 def _check_dest(dest: str) -> None:
@@ -97,16 +98,6 @@ class Option:
         return nvals
 
 
-class OptionGroup:
-    def __init__(self, id: str, title: str) -> None:
-        self.id = id
-        self.title = title
-        self.options: list[Option] = []
-
-    def add(self, option: Option) -> None:
-        self.options.append(option)
-
-
 class Args:
     pass
 
@@ -115,10 +106,9 @@ class Command:
     def __init__(self, name: str, args: Any = None) -> None:
         self.name = name
         self.args = args if args is not None else Args()
-        self.subcommands: list[Command] = []
-        self.arguments: list[Argument] = []
-        self.options: list[Option] = []
-        self.option_groups: dict[str, OptionGroup] = {}
+        self.command_groups: list[CommandGroup] = []
+        self.argument_groups: list[ArgumentGroup] = []
+        self.option_groups: list[OptionGroup] = []
         self.callback = None
 
     @property
@@ -130,26 +120,24 @@ class Command:
         self._callback = value
 
     def add_argument(self, *args: Any, **kwargs: Any) -> Argument:
+        if not self.argument_groups:
+            argument_group = ArgumentGroup("arguments", "Arguments")
+            self.argument_groups.append(argument_group)
+        else:
+            argument_group = self.argument_groups[-1]
         argument = Argument(*args, **kwargs)
-        self.arguments.append(argument)
+        argument_group.add(argument)
         return argument
 
-    def add_option(self, *args: Any, group_id: str = "", **kwargs: Any) -> Option:
-        option = Option(*args, **kwargs)
-        self.options.append(option)
-        self._add_option_group(option, group_id)
-        return option
-
-    def _add_option_group(self, option: Option, group_id: str) -> None:
-        if not group_id:
-            if not self.option_groups:
-                option_group = OptionGroup("options", "Options")
-                self.option_groups["options"] = option_group
-            else:
-                option_group = list(self.option_groups.values())[-1]
+    def add_option(self, *args: Any, **kwargs: Any) -> Option:
+        if not self.option_groups:
+            option_group = OptionGroup("options", "Options")
+            self.option_groups.append(option_group)
         else:
-            option_group = self.option_groups[group_id]
+            option_group = self.option_groups[-1]
+        option = Option(*args, **kwargs)
         option_group.add(option)
+        return option
 
 
 class Program:
