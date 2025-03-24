@@ -1,5 +1,5 @@
 import sys
-from collections.abc import Callable
+from collections.abc import Callable, Collection
 from keyword import iskeyword
 from typing import Any, NoReturn
 
@@ -9,19 +9,29 @@ from .exceptions import CliMessage, CliParsingError, CliSetupError
 from .groups import ArgumentGroup, CommandGroup, OptionGroup
 
 
-def _check_dest(dest: str) -> None:
+def _parse_dest(dest: str) -> str:
     if not dest.isidentifier():
         raise CliSetupError(f"Invalid dest: {dest!r} is not a valid identifier.")
     if iskeyword(dest):
         raise CliSetupError(f"Invalid dest: {dest!r} is a keyword.")
+    return dest
+
+
+def _parse_nvals(nvals: int, choice: Collection) -> int:
+    if nvals not in choice:
+        raise CliSetupError(f"Invalid nvals: Expected {'|'.join(choice)}, but got {nvals!r}.")
+    return nvals
 
 
 class Argument:
-    def __init__(self, id: str, decl: str, *, dest: str = "", nvals: int = 1, required: bool = True) -> None:
+    def __init__(
+        self, id: str, decl: str, *, storage: Any, dest: str = "", nvals: int = 1, required: bool = True
+    ) -> None:
         self.id = id
         self.argument = self._parse_decl(decl)
-        self.dest = self._parse_dest(dest, self.id)
-        self.nvals = self._parse_nvals(nvals)
+        self.storage = storage
+        self.dest = _parse_dest(dest or id)
+        self.nvals = _parse_nvals(nvals, {1, -1, 0})
         self.required = required
 
     @staticmethod
@@ -29,18 +39,6 @@ class Argument:
         if not decl:
             raise CliSetupError("Invalid decl: Empty string is not allowed.")
         return decl
-
-    @staticmethod
-    def _parse_dest(dest: str, id: str) -> str:
-        dest = dest or id
-        _check_dest(dest)
-        return dest
-
-    @staticmethod
-    def _parse_nvals(nvals: int) -> int:
-        if nvals not in (1, -1, 0):
-            raise CliSetupError("Invalid nvals: Value must be one of 1, -1 or 0.")
-        return nvals
 
 
 @attrs.define(kw_only=True)
@@ -50,11 +48,14 @@ class OptionElement:
 
 
 class Option:
-    def __init__(self, id: str, *decls: str, dest: str = "", nvals: int = 1, required: bool = False) -> None:
+    def __init__(
+        self, id: str, *decls: str, storage: Any, dest: str = "", nvals: int = 1, required: bool = False
+    ) -> None:
         self.id = id
         self.long_options, self.short_options = self._parse_decls(*decls)
-        self.dest = self._parse_dest(dest, self.id)
-        self.nvals = self._parse_nvals(nvals)
+        self.storage = storage
+        self.dest = _parse_dest(dest or id)
+        self.nvals = _parse_nvals(nvals, {1, 0})
         self.required = required
 
     @staticmethod
@@ -85,18 +86,6 @@ class Option:
                 raise CliSetupError(f"Invalid decls: {decl!r} does not start with prefix.")
         return long_options, short_options
 
-    @staticmethod
-    def _parse_dest(dest: str, id: str) -> str:
-        dest = dest or id
-        _check_dest(dest)
-        return dest
-
-    @staticmethod
-    def _parse_nvals(nvals: int) -> int:
-        if nvals not in (1, 0):
-            raise CliSetupError("Invalid nvals: Value must be one of 1 or 0.")
-        return nvals
-
 
 class Args:
     pass
@@ -119,25 +108,44 @@ class Command:
     def callback(self, value: Callable | None) -> None:
         self._callback = value
 
+    def add_command(self, *args: Any, **kwargs: Any) -> "Command":
+        command = Command(*args, **kwargs)
+        if not self.command_groups:
+            self.add_command_group("commands", "Commands")
+        command_group = self.command_groups[-1]
+        command_group.add(command)
+        return command
+
+    def add_command_group(self, id: str, title: str) -> CommandGroup:
+        command_group = CommandGroup(id, title)
+        self.command_groups.append(command_group)
+        return command_group
+
     def add_argument(self, *args: Any, **kwargs: Any) -> Argument:
-        if not self.argument_groups:
-            argument_group = ArgumentGroup("arguments", "Arguments")
-            self.argument_groups.append(argument_group)
-        else:
-            argument_group = self.argument_groups[-1]
         argument = Argument(*args, **kwargs)
+        if not self.argument_groups:
+            self.add_argument_group("arguments", "Arguments")
+        argument_group = self.argument_groups[-1]
         argument_group.add(argument)
         return argument
 
+    def add_argument_group(self, id: str, title: str) -> ArgumentGroup:
+        argument_group = ArgumentGroup(id, title)
+        self.argument_groups.append(argument_group)
+        return argument_group
+
     def add_option(self, *args: Any, **kwargs: Any) -> Option:
-        if not self.option_groups:
-            option_group = OptionGroup("options", "Options")
-            self.option_groups.append(option_group)
-        else:
-            option_group = self.option_groups[-1]
         option = Option(*args, **kwargs)
+        if not self.option_groups:
+            self.add_option_group("options", "Options")
+        option_group = self.option_groups[-1]
         option_group.add(option)
         return option
+
+    def add_option_group(self, id: str, title: str, *, multiple: bool = True, required: bool = False) -> OptionGroup:
+        option_group = OptionGroup(id, title, multiple=multiple, required=required)
+        self.option_groups.append(option_group)
+        return option_group
 
 
 class Program:
