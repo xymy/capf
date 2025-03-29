@@ -1,6 +1,7 @@
 import abc
 import os
 import stat
+from datetime import datetime
 from pathlib import Path
 from typing import Generic, TypeVar
 
@@ -44,10 +45,29 @@ class FloatValidator(Validator[float]):
             raise ValueError(f"{value!r} is not a valid floating point number.") from e
 
 
+class DateTimeValidator(Validator[datetime]):
+    def __call__(self, value: str) -> datetime:
+        try:
+            return datetime.fromisoformat(value)
+        except ValueError as e:
+            raise ValueError(f"{value!r} is not a valid datetime.") from e
+
+
 class PathValidator(Validator[Path]):
-    def __init__(self, *, resolve: bool = False, exists: bool = False) -> None:
+    def __init__(
+        self,
+        *,
+        resolve: bool = False,
+        exists: bool = False,
+        readable: bool = False,
+        writable: bool = False,
+        executable: bool = False,
+    ) -> None:
         self.resolve = resolve
         self.exists = exists
+        self.readable = readable
+        self.writable = writable
+        self.executable = executable
 
     def __call__(self, value: str) -> Path:
         path = Path(value)
@@ -62,6 +82,12 @@ class PathValidator(Validator[Path]):
             raise ValueError(f"{str(path)!r} does not exist.") from e
 
         self._check_stat(path, st)
+        if self.readable and not os.access(path, os.R_OK):
+            raise ValueError(f"{str(path)!r} is not readable.")
+        if self.writable and not os.access(path, os.W_OK):
+            raise ValueError(f"{str(path)!r} is not writable.")
+        if self.executable and not os.access(path, os.X_OK):
+            raise ValueError(f"{str(path)!r} is not executable.")
         return path
 
     @staticmethod
@@ -81,3 +107,21 @@ class FilePathValidator(PathValidator):
     def _check_stat(path: Path, st: os.stat_result) -> None:
         if not stat.S_ISREG(st.st_mode):
             raise ValueError(f"{str(path)!r} is not a file.")
+
+
+def resolve_validator(validator: type | Validator) -> Validator:
+    if isinstance(validator, Validator):
+        return validator
+    if validator is str:
+        return StrValidator()
+    if validator is bool:
+        return BoolValidator()
+    if validator is int:
+        return IntValidator()
+    if validator is float:
+        return FloatValidator()
+    if validator is datetime:
+        return DateTimeValidator()
+    if validator is Path:
+        return PathValidator()
+    raise TypeError(f"Unsupported validator type: {validator!r}.")
