@@ -1,6 +1,7 @@
 import abc
 import os
 import stat
+from collections.abc import Sequence
 from datetime import datetime
 from pathlib import Path
 from typing import Generic, TypeVar
@@ -43,6 +44,55 @@ class FloatValidator(Validator[float]):
             return float(value)
         except ValueError as e:
             raise ValueError(f"{value!r} is not a valid floating point number.") from e
+
+
+class ChoiceValidator(Validator[T_co]):
+    def __init__(self, choices: Sequence[T_co], validator: Validator[T_co]) -> None:
+        if not choices:
+            raise ValueError("Empty choices is not allowed.")
+        self.choices = list(choices)
+        self.validator = validator
+
+    def __call__(self, value: str) -> T_co:
+        value_validated = self.validator(value)
+        if value_validated not in self.choices:
+            raise ValueError(self._get_error_message(value))
+        return value_validated
+
+    def _get_error_message(self, value: str) -> str:
+        choices_str = ", ".join(map(repr, self.choices))
+        if len(self.choices) < 2:
+            return f"{value!r} is not {choices_str}."
+        return f"{value!r} is not one of {choices_str}."
+
+
+class StrChoiceValidator(ChoiceValidator[str]):
+    def __init__(self, choices: Sequence[str], *, ignore_case: bool = False, norm_case: bool = False) -> None:
+        super().__init__(choices, StrValidator())
+        self.ignore_case = ignore_case
+        self.norm_case = norm_case
+
+    def __call__(self, value: str) -> str:
+        if not self.ignore_case:
+            return super().__call__(value)
+
+        value_lower = value.lower()
+        choices_lower = [choice.lower() for choice in self.choices]
+        try:
+            index = choices_lower.index(value_lower)
+        except ValueError as e:
+            raise ValueError(self._get_error_message(value)) from e
+        return self.choices[index] if self.norm_case else value
+
+
+class IntChoiceValidator(ChoiceValidator[int]):
+    def __init__(self, choices: Sequence[int]) -> None:
+        super().__init__(choices, IntValidator())
+
+
+class FloatChoiceValidator(ChoiceValidator[float]):
+    def __init__(self, choices: Sequence[float]) -> None:
+        super().__init__(choices, FloatValidator())
 
 
 class DateTimeValidator(Validator[datetime]):
