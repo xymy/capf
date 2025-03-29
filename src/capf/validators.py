@@ -2,12 +2,12 @@ import abc
 import os
 import stat
 from pathlib import Path
-from typing import Protocol, TypeVar
+from typing import Generic, TypeVar
 
 T_co = TypeVar("T_co", covariant=True)
 
 
-class Validator(Protocol[T_co]):
+class Validator(Generic[T_co], metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def __call__(self, value: str) -> T_co:
         raise NotImplementedError
