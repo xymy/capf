@@ -54,10 +54,10 @@ class ChoiceValidator(Validator[T_co]):
         self.validator = validator
 
     def __call__(self, value: str) -> T_co:
-        value_validated = self.validator(value)
-        if value_validated not in self.choices:
+        value_parsed = self.validator(value)
+        if value_parsed not in self.choices:
             raise ValueError(self._get_error_message(value))
-        return value_validated
+        return value_parsed
 
     def _get_error_message(self, value: str) -> str:
         choices_str = ", ".join(map(repr, self.choices))
@@ -76,13 +76,14 @@ class StrChoiceValidator(ChoiceValidator[str]):
         if not self.ignore_case:
             return super().__call__(value)
 
-        value_lower = value.lower()
+        value_parsed = self.validator(value)
+        value_lower = value_parsed.lower()
         choices_lower = [choice.lower() for choice in self.choices]
         try:
             index = choices_lower.index(value_lower)
         except ValueError as e:
             raise ValueError(self._get_error_message(value)) from e
-        return self.choices[index] if self.norm_case else value
+        return self.choices[index] if self.norm_case else value_parsed
 
 
 class IntChoiceValidator(ChoiceValidator[int]):
