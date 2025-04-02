@@ -10,17 +10,23 @@ T_co = TypeVar("T_co", covariant=True)
 
 
 class Validator(Generic[T_co], metaclass=abc.ABCMeta):
+    __slots__ = ()
+
     @abc.abstractmethod
     def __call__(self, value: str) -> T_co:
         raise NotImplementedError
 
 
 class StrValidator(Validator[str]):
+    __slots__ = ()
+
     def __call__(self, value: str) -> str:
         return value
 
 
 class BoolValidator(Validator[bool]):
+    __slots__ = ()
+
     def __call__(self, value: str) -> bool:
         value_lower = value.lower()
         if value_lower in {"t", "true", "y", "yes", "on", "1"}:
@@ -31,6 +37,8 @@ class BoolValidator(Validator[bool]):
 
 
 class IntValidator(Validator[int]):
+    __slots__ = ()
+
     def __call__(self, value: str) -> int:
         try:
             return int(value)
@@ -39,6 +47,8 @@ class IntValidator(Validator[int]):
 
 
 class FloatValidator(Validator[float]):
+    __slots__ = ()
+
     def __call__(self, value: str) -> float:
         try:
             return float(value)
@@ -47,6 +57,8 @@ class FloatValidator(Validator[float]):
 
 
 class ChoiceValidator(Validator[T_co]):
+    __slots__ = ("choices", "validator")
+
     def __init__(self, choices: Sequence[T_co], validator: Validator[T_co]) -> None:
         if not choices:
             raise ValueError("Empty choices is not allowed.")
@@ -67,6 +79,8 @@ class ChoiceValidator(Validator[T_co]):
 
 
 class StrChoiceValidator(ChoiceValidator[str]):
+    __slots__ = ("ignore_case", "norm_case")
+
     def __init__(self, choices: Sequence[str], *, ignore_case: bool = False, norm_case: bool = False) -> None:
         super().__init__(choices, StrValidator())
         self.ignore_case = ignore_case
@@ -87,16 +101,22 @@ class StrChoiceValidator(ChoiceValidator[str]):
 
 
 class IntChoiceValidator(ChoiceValidator[int]):
+    __slots__ = ()
+
     def __init__(self, choices: Sequence[int]) -> None:
         super().__init__(choices, IntValidator())
 
 
 class FloatChoiceValidator(ChoiceValidator[float]):
+    __slots__ = ()
+
     def __init__(self, choices: Sequence[float]) -> None:
         super().__init__(choices, FloatValidator())
 
 
 class DateTimeValidator(Validator[datetime]):
+    __slots__ = ()
+
     def __call__(self, value: str) -> datetime:
         try:
             return datetime.fromisoformat(value)
@@ -105,6 +125,8 @@ class DateTimeValidator(Validator[datetime]):
 
 
 class PathValidator(Validator[Path]):
+    __slots__ = ("executable", "exists", "readable", "resolve", "writable")
+
     def __init__(
         self,
         *,
@@ -147,6 +169,8 @@ class PathValidator(Validator[Path]):
 
 
 class DirPathValidator(PathValidator):
+    __slots__ = ()
+
     @staticmethod
     def _check_stat(path: Path, st: os.stat_result) -> None:
         if not stat.S_ISDIR(st.st_mode):
@@ -154,6 +178,8 @@ class DirPathValidator(PathValidator):
 
 
 class FilePathValidator(PathValidator):
+    __slots__ = ()
+
     @staticmethod
     def _check_stat(path: Path, st: os.stat_result) -> None:
         if not stat.S_ISREG(st.st_mode):
