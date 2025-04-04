@@ -73,6 +73,7 @@ class ChoiceValidator(Validator[T_co]):
     __slots__ = ("choices", "validator")
 
     def __init__(self, choices: Sequence[T_co], validator: Validator[T_co]) -> None:
+        super().__init__()
         if not choices:
             raise ValueError("Empty choices is not allowed.")
         self.choices = list(choices)
@@ -110,8 +111,8 @@ class StrChoiceValidator(ChoiceValidator[str]):
         choices_lower = [choice.lower() for choice in self.choices]
         try:
             index = choices_lower.index(value_lower)
-        except ValueError as e:
-            raise ValueError(self._get_error_message(value)) from e
+        except ValueError:
+            raise ValueError(self._get_error_message(value)) from None
         return self.choices[index] if self.norm_case else value_parsed
 
 
@@ -173,6 +174,7 @@ class PathValidator(Validator[Path]):
         writable: bool = False,
         executable: bool = False,
     ) -> None:
+        super().__init__()
         self.resolve = resolve
         self.exists = exists
         self.readable = readable
