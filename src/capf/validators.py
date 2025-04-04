@@ -10,14 +10,19 @@ T_co = TypeVar("T_co", covariant=True)
 
 
 class Validator(Generic[T_co], metaclass=abc.ABCMeta):
+    """The abstract base class for validators."""
+
     __slots__ = ()
 
     @abc.abstractmethod
     def __call__(self, value: str) -> T_co:
+        """Convert string to desired type and check whether it is a valid value."""
         raise NotImplementedError
 
 
 class StrValidator(Validator[str]):
+    """The default validator."""
+
     __slots__ = ()
 
     def __call__(self, value: str) -> str:
@@ -25,6 +30,8 @@ class StrValidator(Validator[str]):
 
 
 class BoolValidator(Validator[bool]):
+    """The validator used to convert string to boolean."""
+
     __slots__ = ()
 
     def __call__(self, value: str) -> bool:
@@ -37,6 +44,8 @@ class BoolValidator(Validator[bool]):
 
 
 class IntValidator(Validator[int]):
+    """The validator used to convert string to integer."""
+
     __slots__ = ()
 
     def __call__(self, value: str) -> int:
@@ -47,6 +56,8 @@ class IntValidator(Validator[int]):
 
 
 class FloatValidator(Validator[float]):
+    """The validator used to convert string to floating point number."""
+
     __slots__ = ()
 
     def __call__(self, value: str) -> float:
@@ -57,6 +68,8 @@ class FloatValidator(Validator[float]):
 
 
 class ChoiceValidator(Validator[T_co]):
+    """The base class for choice validators."""
+
     __slots__ = ("choices", "validator")
 
     def __init__(self, choices: Sequence[T_co], validator: Validator[T_co]) -> None:
@@ -79,6 +92,8 @@ class ChoiceValidator(Validator[T_co]):
 
 
 class StrChoiceValidator(ChoiceValidator[str]):
+    """The validator used to check whether string is in a list."""
+
     __slots__ = ("ignore_case", "norm_case")
 
     def __init__(self, choices: Sequence[str], *, ignore_case: bool = False, norm_case: bool = False) -> None:
@@ -101,6 +116,8 @@ class StrChoiceValidator(ChoiceValidator[str]):
 
 
 class IntChoiceValidator(ChoiceValidator[int]):
+    """The validator used to convert string to integer and check whether it is in a list."""
+
     __slots__ = ()
 
     def __init__(self, choices: Sequence[int]) -> None:
@@ -108,6 +125,8 @@ class IntChoiceValidator(ChoiceValidator[int]):
 
 
 class FloatChoiceValidator(ChoiceValidator[float]):
+    """The validator used to convert string to floating point number and check whether it is in a list."""
+
     __slots__ = ()
 
     def __init__(self, choices: Sequence[float]) -> None:
@@ -115,6 +134,8 @@ class FloatChoiceValidator(ChoiceValidator[float]):
 
 
 class DateTimeValidator(Validator[datetime]):
+    """The validator used to convert string to date time."""
+
     __slots__ = ()
 
     def __call__(self, value: str) -> datetime:
@@ -125,6 +146,22 @@ class DateTimeValidator(Validator[datetime]):
 
 
 class PathValidator(Validator[Path]):
+    """The validator used to convert string to filesystem path.
+
+    Parameters
+    ----------
+    resolve (bool, default=False):
+        If ``True``, resolve the path via :meth:`pathlib.Path.resolve`.
+    exists (bool, default=False):
+        If ``True``, check whether the path exists.
+    readable (bool, default=False):
+        If ``True``, check whether the path is readable.
+    writable (bool, default=False):
+        If ``True``, check whether the path is writable.
+    executable (bool, default=False):
+        If ``True``, check whether the path is executable.
+    """
+
     __slots__ = ("executable", "exists", "readable", "resolve", "writable")
 
     def __init__(
@@ -169,6 +206,8 @@ class PathValidator(Validator[Path]):
 
 
 class DirPathValidator(PathValidator):
+    """The validator used to convert string to filesystem path and check whether it is a directory."""
+
     __slots__ = ()
 
     @staticmethod
@@ -178,6 +217,8 @@ class DirPathValidator(PathValidator):
 
 
 class FilePathValidator(PathValidator):
+    """The validator used to convert string to filesystem path and check whether it is a regular file."""
+
     __slots__ = ()
 
     @staticmethod
