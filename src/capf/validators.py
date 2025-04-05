@@ -112,7 +112,7 @@ class StrChoiceValidator(ChoiceValidator[str]):
     norm_case : bool, default=False
         If ``True``, return the normalized case of the value. That means, the value will be remapped to its equivalent
         in the ``choices``. For example, if the ``choices`` is ``["Android", "iOS"]`` and the value is ``"ios"``, the
-        return value will be ``"iOS"``.
+        return value will be ``"iOS"``. This will take no effect if ``ignore_case`` is ``False``.
     """
 
     __slots__ = ("ignore_case", "norm_case")
@@ -184,7 +184,7 @@ class PathValidator(Validator[Path]):
     Parameters
     ----------
     resolve : bool, default=False
-        If ``True``, resolve the path via :meth:`pathlib.Path.resolve`.
+        If ``True``, resolve the path using :meth:`pathlib.Path.resolve`.
     exists : bool, default=False
         If ``True``, check whether the path exists.
     readable : bool, default=False
@@ -262,6 +262,24 @@ class FilePathValidator(PathValidator):
 
 
 def resolve_validator(validator: type | Validator) -> Validator:
+    """Resolve common types to validators.
+
+    +----------------------------+------------------------------+
+    | Input                      | Output                       |
+    +============================+==============================+
+    | :class:`str`               | :class:`StrValidator()`      |
+    +----------------------------+------------------------------+
+    | :class:`bool`              | :class:`BoolValidator()`     |
+    +----------------------------+------------------------------+
+    | :class:`int`               | :class:`IntValidator()`      |
+    +----------------------------+------------------------------+
+    | :class:`float`             | :class:`FloatValidator()`    |
+    +----------------------------+------------------------------+
+    | :class:`datetime.datetime` | :class:`DateTimeValidator()` |
+    +----------------------------+------------------------------+
+    | :class:`pathlib.Path`      | :class:`PathValidator()`     |
+    +----------------------------+------------------------------+
+    """
     if isinstance(validator, Validator):
         return validator
     if validator is str:
