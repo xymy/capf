@@ -1,12 +1,13 @@
 import sys
-from collections.abc import Callable
-from typing import TYPE_CHECKING, Any, NoReturn
+from collections.abc import Callable, Iterator
+from typing import TYPE_CHECKING, Any, Generic, NoReturn, TypeVar
 
 from .exceptions import CliMessage, CliParsingError, CliSetupError
-from .groups import ArgumentGroup, CommandGroup, OptionGroup
 
 if TYPE_CHECKING:
     from .adaptors import Adaptor
+
+T = TypeVar("T")
 
 
 class Argument:
@@ -61,6 +62,84 @@ class Option:
             else:
                 raise CliSetupError(f"Invalid decls: {decl!r} does not start with prefix.")
         return long_options, short_options
+
+
+class Group(Generic[T]):
+    """The base class for groups.
+
+    Parameters
+    ----------
+    id : str
+        The group id.
+    title : str
+        The group title. This will be displayed in the help information.
+    """
+
+    def __init__(self, id: str, title: str) -> None:
+        self.id = id
+        self.title = title
+        self._members: list[T] = []
+
+    def __bool__(self) -> bool:
+        """Return ``True`` if this group has at least one member."""
+        return bool(self._members)
+
+    def __len__(self) -> int:
+        """Return the number of members in this group."""
+        return len(self._members)
+
+    def __iter__(self) -> Iterator[T]:
+        """Return an iterator of members in this group."""
+        return iter(self._members)
+
+    def add(self, member: T) -> None:
+        """Add a member to this group."""
+        self._members.append(member)
+
+
+class CommandGroup(Group["Command"]):
+    """The group of commands.
+
+    Parameters
+    ----------
+    id : str
+        The group id.
+    title : str
+        The group title. This will be displayed in the help information.
+    """
+
+
+class ArgumentGroup(Group[Argument]):
+    """The group of arguments.
+
+    Parameters
+    ----------
+    id : str
+        The group id.
+    title : str
+        The group title. This will be displayed in the help information.
+    """
+
+
+class OptionGroup(Group[Option]):
+    """The group of options.
+
+    Parameters
+    ----------
+    id : str
+        The group id.
+    title : str
+        The group title. This will be displayed in the help information.
+    multiple : bool, default=True
+        If ``True``, allow more than one options in this group to be provided.
+    required : bool, default=False
+        If ``True``, require at least one option in this group to be provided.
+    """
+
+    def __init__(self, id: str, title: str, *, multiple: bool = True, required: bool = False) -> None:
+        super().__init__(id, title)
+        self.multiple = multiple
+        self.required = required
 
 
 class Command:
