@@ -1,37 +1,22 @@
 import sys
-from collections.abc import Callable, Collection
-from keyword import iskeyword
-from typing import Any, NoReturn
-
-import attrs
+from collections.abc import Callable
+from typing import TYPE_CHECKING, Any, NoReturn
 
 from .exceptions import CliMessage, CliParsingError, CliSetupError
 from .groups import ArgumentGroup, CommandGroup, OptionGroup
 
-
-def _parse_dest(dest: str) -> str:
-    if not dest.isidentifier():
-        raise CliSetupError(f"Invalid dest: {dest!r} is not a valid identifier.")
-    if iskeyword(dest):
-        raise CliSetupError(f"Invalid dest: {dest!r} is a keyword.")
-    return dest
-
-
-def _parse_nvals(nvals: int, choice: Collection) -> int:
-    if nvals not in choice:
-        raise CliSetupError(f"Invalid nvals: Expected {'|'.join(choice)}, but got {nvals!r}.")
-    return nvals
+if TYPE_CHECKING:
+    from .adaptors import Adaptor
 
 
 class Argument:
     def __init__(
-        self, id: str, decl: str, *, storage: Any, dest: str = "", nvals: int = 1, required: bool = True
+        self, id: str, decl: str, *, adaptor: "Adaptor", multiple: bool = False, required: bool = True
     ) -> None:
         self.id = id
         self.argument = self._parse_decl(decl)
-        self.storage = storage
-        self.dest = _parse_dest(dest or id)
-        self.nvals = _parse_nvals(nvals, {1, -1, 0})
+        self.adaptor = adaptor
+        self.multiple = multiple
         self.required = required
 
     @staticmethod
@@ -41,45 +26,36 @@ class Argument:
         return decl
 
 
-@attrs.define(kw_only=True)
-class OptionElement:
-    prefix: str
-    text: str
-
-
 class Option:
-    def __init__(
-        self, id: str, *decls: str, storage: Any, dest: str = "", nvals: int = 1, required: bool = False
-    ) -> None:
+    def __init__(self, id: str, *decls: str, adaptor: "Adaptor", multiple: bool = True, required: bool = False) -> None:
         self.id = id
         self.long_options, self.short_options = self._parse_decls(*decls)
-        self.storage = storage
-        self.dest = _parse_dest(dest or id)
-        self.nvals = _parse_nvals(nvals, {1, 0})
+        self.adaptor = adaptor
+        self.multiple = multiple
         self.required = required
 
     @staticmethod
-    def _parse_decls(*decls: str) -> tuple[list[OptionElement], list[OptionElement]]:
+    def _parse_decls(*decls: str) -> tuple[list[str], list[str]]:
         if not decls:
             raise CliSetupError("Invalid decls: At least one decl is required.")
 
-        long_options: list[OptionElement] = []
-        short_options: list[OptionElement] = []
+        long_options: list[str] = []
+        short_options: list[str] = []
         for decl in decls:
             if decl.startswith("--"):
-                prefix, text = "--", decl[2:]
+                text = decl[2:]
                 if not text:
                     raise CliSetupError("Invalid decls: Empty string following prefix is not allowed.")
                 if len(text) < 2:
                     raise CliSetupError(f"Invalid decls: Long option {decl!r} is too short.")
-                long_options.append(OptionElement(prefix=prefix, text=text))
+                long_options.append(text)
             elif decl.startswith("-"):
-                prefix, text = "-", decl[1:]
+                text = decl[1:]
                 if not text:
                     raise CliSetupError("Invalid decls: Empty string following prefix is not allowed.")
                 if len(text) > 1:
                     raise CliSetupError(f"Invalid decls: Short option {decl!r} is too long.")
-                short_options.append(OptionElement(prefix=prefix, text=text))
+                short_options.append(text)
             elif not decl:
                 raise CliSetupError("Invalid decls: Empty string is not allowed.")
             else:
@@ -87,14 +63,9 @@ class Option:
         return long_options, short_options
 
 
-class Args:
-    pass
-
-
 class Command:
-    def __init__(self, name: str, args: Any = None) -> None:
+    def __init__(self, name: str) -> None:
         self.name = name
-        self.args = args if args is not None else Args()
         self.command_groups: list[CommandGroup] = []
         self.argument_groups: list[ArgumentGroup] = []
         self.option_groups: list[OptionGroup] = []
