@@ -68,7 +68,15 @@ class FloatValidator(Validator[float]):
 
 
 class ChoiceValidator(Validator[T_co]):
-    """The base class for choice validators."""
+    """The base class for choice validators.
+
+    Parameters
+    ----------
+    choices : collections.abc.Sequence[T_co]
+        The list of possible values.
+    validator : Validator[T_co]
+        The validator used to convert string to desired type.
+    """
 
     __slots__ = ("choices", "validator")
 
@@ -93,7 +101,19 @@ class ChoiceValidator(Validator[T_co]):
 
 
 class StrChoiceValidator(ChoiceValidator[str]):
-    """The validator used to check whether string is in a list."""
+    """The validator used to check whether string is in a list.
+
+    Parameters
+    ----------
+    choices : collections.abc.Sequence[str]
+        The list of possible values.
+    ignore_case : bool, default=False
+        If ``True``, ignore case when checking the value.
+    norm_case : bool, default=False
+        If ``True``, return the normalized case of the value. That means, the value will be remapped to its equivalent
+        in the ``choices``. For example, if the ``choices`` is ``["Android", "iOS"]`` and the value is ``"ios"``, the
+        return value will be ``"iOS"``.
+    """
 
     __slots__ = ("ignore_case", "norm_case")
 
@@ -117,7 +137,13 @@ class StrChoiceValidator(ChoiceValidator[str]):
 
 
 class IntChoiceValidator(ChoiceValidator[int]):
-    """The validator used to convert string to integer and check whether it is in a list."""
+    """The validator used to convert string to integer and check whether it is in a list.
+
+    Parameters
+    ----------
+    choices : collections.abc.Sequence[int]
+        The list of possible values.
+    """
 
     __slots__ = ()
 
@@ -126,7 +152,13 @@ class IntChoiceValidator(ChoiceValidator[int]):
 
 
 class FloatChoiceValidator(ChoiceValidator[float]):
-    """The validator used to convert string to floating point number and check whether it is in a list."""
+    """The validator used to convert string to floating point number and check whether it is in a list.
+
+    Parameters
+    ----------
+    choices : collections.abc.Sequence[float]
+        The list of possible values.
+    """
 
     __slots__ = ()
 
@@ -135,7 +167,7 @@ class FloatChoiceValidator(ChoiceValidator[float]):
 
 
 class DateTimeValidator(Validator[datetime]):
-    """The validator used to convert string to date time."""
+    """The validator used to convert string to date-time."""
 
     __slots__ = ()
 
@@ -143,7 +175,7 @@ class DateTimeValidator(Validator[datetime]):
         try:
             return datetime.fromisoformat(value)
         except ValueError as e:
-            raise ValueError(f"{value!r} is not a valid datetime.") from e
+            raise ValueError(f"{value!r} is not a valid date-time.") from e
 
 
 class PathValidator(Validator[Path]):
@@ -151,15 +183,15 @@ class PathValidator(Validator[Path]):
 
     Parameters
     ----------
-    resolve (bool, default=False):
+    resolve : bool, default=False
         If ``True``, resolve the path via :meth:`pathlib.Path.resolve`.
-    exists (bool, default=False):
+    exists : bool, default=False
         If ``True``, check whether the path exists.
-    readable (bool, default=False):
+    readable : bool, default=False
         If ``True``, check whether the path is readable.
-    writable (bool, default=False):
+    writable : bool, default=False
         If ``True``, check whether the path is writable.
-    executable (bool, default=False):
+    executable : bool, default=False
         If ``True``, check whether the path is executable.
     """
 
