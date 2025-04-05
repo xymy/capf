@@ -1,3 +1,73 @@
+[build-system]
+requires = ["hatchling>=1.27"]
+build-backend = "hatchling.build"
+
+[project]
+name = "capf"
+description = "Command-line argument parser and framework"
+readme = "README.md"
+license = "MIT"
+authors = [{ name = "xymy", email = "thyfan@163.com" }]
+maintainers = [{ name = "xymy", email = "thyfan@163.com" }]
+keywords = ["cli"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Utilities",
+]
+requires-python = ">=3.10"
+dependencies = [
+    # https://rich.readthedocs.io/en/latest/
+    "rich>=13.9",
+]
+dynamic = ["version"]
+
+[dependency-groups]
+docs = [
+    # https://www.sphinx-doc.org/en/master/
+    "sphinx>=8.1",
+    # https://pradyunsg.me/furo/
+    "furo>=2024.8",
+    # https://myst-parser.readthedocs.io/en/latest/
+    "myst-parser>=4.0",
+    # https://sphinx-copybutton.readthedocs.io/en/latest/
+    "sphinx-copybutton>=0.5.2",
+    # https://github.com/sphinx-doc/sphinx-autobuild
+    "sphinx-autobuild>=2024.10",
+]
+lint = [
+    # https://docs.astral.sh/ruff/
+    "ruff>=0.11.0",
+    # https://mypy.readthedocs.io/en/stable/
+    "mypy>=1.15",
+]
+test = [
+    # https://coverage.readthedocs.io/en/latest/
+    "coverage>=7.7",
+    # https://hypothesis.readthedocs.io/en/latest/
+    "hypothesis>=6.128",
+    # https://docs.pytest.org/en/latest/
+    "pytest>=8.3",
+    # https://pytest-cov.readthedocs.io/en/latest/
+    "pytest-cov>=6.0",
+]
+
+[tool.hatch.version]
+path = "src/capf/__init__.py"
+
+[tool.uv]
+default-groups = "all"
+
 [tool.ruff]
 target-version = "py310"
 cache-dir = ".cache/ruff"
