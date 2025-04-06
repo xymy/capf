@@ -261,12 +261,14 @@ class FilePathValidator(PathValidator):
             raise ValueError(f"{str(path)!r} is not a file.")
 
 
-def resolve_validator(validator: type | Validator) -> Validator:
+def resolve_validator(validator: type | Validator | None) -> Validator:
     """Resolve common types to validators.
 
     +----------------------------+------------------------------+
     | Input                      | Output                       |
     +============================+==============================+
+    | ``None``                   | :class:`StrValidator()`      |
+    +----------------------------+------------------------------+
     | :class:`str`               | :class:`StrValidator()`      |
     +----------------------------+------------------------------+
     | :class:`bool`              | :class:`BoolValidator()`     |
@@ -282,7 +284,7 @@ def resolve_validator(validator: type | Validator) -> Validator:
     """
     if isinstance(validator, Validator):
         return validator
-    if validator is str:
+    if validator is None or validator is str:
         return StrValidator()
     if validator is bool:
         return BoolValidator()
