@@ -11,13 +11,29 @@ S = TypeVar("S")
 
 
 class Adaptor(metaclass=abc.ABCMeta):
-    """The abstract base class for adaptors."""
+    """The abstract base class for adaptors.
 
-    __slots__ = ("count", "num_values")
+    Parameters
+    ----------
+    num_values : int
+        The number of values :meth:`.__call__` can accept.
+    """
+
+    __slots__ = ("_count", "num_values")
 
     def __init__(self, *, num_values: int) -> None:
         self.num_values = num_values
-        self.count = 0
+        self._count = 0
+
+    @property
+    def count(self) -> int:
+        """The number of times :meth:`.__call__` was called.
+
+        Tip
+        ---
+        You can use this to check whether associated argument/option was present in the command-line.
+        """
+        return self._count
 
     @abc.abstractmethod
     def __call__(self, values: list[str]) -> None:
@@ -40,7 +56,7 @@ class ScalarAdaptor(ValueAdaptor[T, T]):
     def __call__(self, values: list[str]) -> None:
         assert len(values) == 1
         self.value_parsed = self.validator(values[0])
-        self.count += 1
+        self._count += 1
 
 
 class ListAdaptor(ValueAdaptor[T, list[T]]):
@@ -48,10 +64,10 @@ class ListAdaptor(ValueAdaptor[T, list[T]]):
 
     def __call__(self, values: list[str]) -> None:
         assert len(values) == 1
-        if self.value_parsed is None or self.count == 0:
+        if self.value_parsed is None or self._count == 0:
             self.value_parsed = []
         self.value_parsed.append(self.validator(values[0]))
-        self.count += 1
+        self._count += 1
 
 
 class FlagAdaptor(Adaptor, Generic[S]):
@@ -71,7 +87,7 @@ class OnFlagAdaptor(FlagAdaptor):
     def __call__(self, values: list[str]) -> None:
         assert len(values) == 0
         self.value_parsed = True
-        self.count += 1
+        self._count += 1
 
 
 class OffFlagAdaptor(FlagAdaptor):
@@ -83,7 +99,7 @@ class OffFlagAdaptor(FlagAdaptor):
     def __call__(self, values: list[str]) -> None:
         assert len(values) == 0
         self.value_parsed = False
-        self.count += 1
+        self._count += 1
 
 
 class MessageAdaptor(FlagAdaptor):
