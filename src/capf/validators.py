@@ -112,7 +112,7 @@ class StrChoiceValidator(ChoiceValidator[str]):
     norm_case : bool, default=False
         If ``True``, return the normalized case of the value. That means, the value will be remapped to its equivalent
         in the ``choices``. For example, if the ``choices`` is ``["Android", "iOS"]`` and the value is ``"ios"``, the
-        return value will be ``"iOS"``. This will take no effect if ``ignore_case`` is ``False``.
+        return value will be ``"iOS"``. This has no effect if ``ignore_case`` is ``False``.
     """
 
     __slots__ = ("ignore_case", "norm_case")
