@@ -102,6 +102,20 @@ class OffFlagAdaptor(FlagAdaptor):
         self._count += 1
 
 
+class CountFlagAdaptor(FlagAdaptor[int]):
+    __slots__ = ()
+
+    def __init__(self) -> None:
+        super().__init__(default_value=0)
+
+    def __call__(self, values: list[str]) -> None:
+        assert len(values) == 0
+        if self.value_parsed is None or self._count == 0:
+            self.value_parsed = 0
+        self.value_parsed += 1
+        self._count += 1
+
+
 class MessageAdaptor(FlagAdaptor):
     __slots__ = ()
 
