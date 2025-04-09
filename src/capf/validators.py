@@ -30,7 +30,15 @@ class StrValidator(Validator[str]):
 
 
 class BoolValidator(Validator[bool]):
-    """The validator used to convert string to boolean."""
+    """The validator used to convert string to boolean.
+
+    .. note::
+
+        The following values will be recognized (case insensitive):
+
+        - ``True``: ``"t"``, ``"true"``, ``"y"``, ``"yes"``, ``"on"``, ``"1"``.
+        - ``False``: ``"f"``, ``"false"``, ``"n"``, ``"no"``, ``"off"``, ``"0"``.
+    """
 
     __slots__ = ()
 
@@ -44,7 +52,12 @@ class BoolValidator(Validator[bool]):
 
 
 class IntValidator(Validator[int]):
-    """The validator used to convert string to integer."""
+    """The validator used to convert string to integer.
+
+    .. seealso::
+
+        - https://docs.python.org/3/library/functions.html#int
+    """
 
     __slots__ = ()
 
@@ -56,7 +69,12 @@ class IntValidator(Validator[int]):
 
 
 class FloatValidator(Validator[float]):
-    """The validator used to convert string to floating point number."""
+    """The validator used to convert string to floating point number.
+
+    .. seealso::
+
+        - https://docs.python.org/3/library/functions.html#float
+    """
 
     __slots__ = ()
 
@@ -167,7 +185,13 @@ class FloatChoiceValidator(ChoiceValidator[float]):
 
 
 class DateTimeValidator(Validator[datetime]):
-    """The validator used to convert string to date-time."""
+    """The validator used to convert string to date-time.
+
+    .. seealso::
+
+        - https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
+        - https://datatracker.ietf.org/doc/html/rfc3339
+    """
 
     __slots__ = ()
 
