@@ -92,12 +92,11 @@ class Option:
 class Group(Generic[T]):
     """The base class for groups.
 
-    Parameters
-    ----------
-    id : str
-        The group id.
-    title : str
-        The group title. This will be displayed in the help information.
+    Args:
+        id (str):
+            The group id.
+        title (str):
+            The group title. This will be displayed in the help information.
     """
 
     def __init__(self, id: str, title: str) -> None:
@@ -106,59 +105,56 @@ class Group(Generic[T]):
         self._members: list[T] = []
 
     def __bool__(self) -> bool:
-        """Return ``True`` if this group has at least one member."""
+        """Returns ``True`` if this group has at least one member."""
         return bool(self._members)
 
     def __len__(self) -> int:
-        """Return the number of members in this group."""
+        """Returns the number of members in this group."""
         return len(self._members)
 
     def __iter__(self) -> Iterator[T]:
-        """Return an iterator of members in this group."""
+        """Returns an iterator of members in this group."""
         return iter(self._members)
 
     def add(self, member: T) -> None:
-        """Add a member to this group."""
+        """Adds a member to this group."""
         self._members.append(member)
 
 
 class CommandGroup(Group["Command"]):
     """The group of commands.
 
-    Parameters
-    ----------
-    id : str
-        The group id.
-    title : str
-        The group title. This will be displayed in the help information.
+    Args:
+        id (str):
+            The group id.
+        title (str):
+            The group title. This will be displayed in the help information.
     """
 
 
 class ArgumentGroup(Group[Argument]):
     """The group of arguments.
 
-    Parameters
-    ----------
-    id : str
-        The group id.
-    title : str
-        The group title. This will be displayed in the help information.
+    Args:
+        id (str):
+            The group id.
+        title (str):
+            The group title. This will be displayed in the help information.
     """
 
 
 class OptionGroup(Group[Option]):
     """The group of options.
 
-    Parameters
-    ----------
-    id : str
-        The group id.
-    title : str
-        The group title. This will be displayed in the help information.
-    multiple : bool, default=True
-        If ``True``, allow more than one options in this group to be provided.
-    required : bool, default=False
-        If ``True``, require at least one option in this group to be provided.
+    Args:
+        id (str):
+            The group id.
+        title (str):
+            The group title. This will be displayed in the help information.
+        multiple (bool, default=True):
+            If ``True``, allow more than one options in this group to be provided.
+        required (bool, default=False):
+            If ``True``, require at least one option in this group to be provided.
     """
 
     def __init__(
@@ -242,16 +238,17 @@ class Command:
 class Program:
     """The program.
 
-    Parameters
-    ----------
-    name : str
-        Name of this program. This will be displayed when user request to print version.
-    version : str, default=""
-        Version of this program. This will be displayed when user request to print version.
-    exit_code_for_invalid_cli : int, default=2
-        Exit code used for invalid CLI arguments.
-    exit_code_for_unhandled_exception : int, default=2
-        Exit code used for any other unhandled exception.
+    Args:
+        name (str):
+            The name of this program. This will be displayed when the user
+            request to print version.
+        version (str, default=""):
+            The version of this program. This will be displayed when the user
+            request to print version.
+        exit_code_for_invalid_cli (int, default=2):
+            The exit code used for invalid CLI arguments.
+        exit_code_for_unhandled_exception (int, default=2):
+            The exit code used for any other unhandled exception.
     """
 
     def __init__(

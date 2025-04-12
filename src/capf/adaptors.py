@@ -13,10 +13,9 @@ S = TypeVar("S")
 class Adaptor(metaclass=abc.ABCMeta):
     """The abstract base class for adaptors.
 
-    Parameters
-    ----------
-    num_values : int
-        The number of values :meth:`.__call__` can accept.
+    Args:
+        num_values (int):
+            The number of values :meth:`.__call__` can accept.
     """
 
     __slots__ = ("_count", "num_values")
@@ -29,15 +28,16 @@ class Adaptor(metaclass=abc.ABCMeta):
     def count(self) -> int:
         """The number of times :meth:`.__call__` was called.
 
-        Tip
-        ---
-        You can use this to check whether associated argument/option was present in the command-line.
+        .. tip::
+
+            You can use this to check whether associated argument/option was
+            present in the command-line.
         """
         return self._count
 
     @abc.abstractmethod
     def __call__(self, values: list[str]) -> None:
-        """Parse the values and store the result."""
+        """Parses the values and stores the result."""
         raise NotImplementedError
 
 

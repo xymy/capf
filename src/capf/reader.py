@@ -4,14 +4,13 @@ from collections.abc import Sequence
 class Reader:
     """Wrapper for stream reading with rollback.
 
-    Parameters
-    ----------
-    tokens : collections.abc.Sequence[str]
-        The tokens to read.
-    start : int | None, default=None
-        The start index of the tokens. If ``None``, use ``0``.
-    end : int | None, default=None
-        The end index of the tokens. If ``None``, use ``len(tokens)``.
+    Args:
+        tokens (collections.abc.Sequence[str]):
+            The tokens to read.
+        start (int | None, default=None):
+            The start index of the tokens. If ``None``, use ``0``.
+        end (int | None, default=None):
+            The end index of the tokens. If ``None``, use ``len(tokens)``.
     """
 
     def __init__(
@@ -44,11 +43,11 @@ class Reader:
         return self._cursor
 
     def is_eof(self) -> bool:
-        """Return ``True`` if there is no more token."""
+        """Returns ``True`` if there is no more token."""
         return self._cursor == self.end
 
     def get(self) -> str:
-        """Get the current token and advance internal cursor."""
+        """Gets the current token and advances internal cursor."""
         if self._cursor == self.end:
             raise IndexError("index out of range")
 
@@ -57,7 +56,7 @@ class Reader:
         return token
 
     def put(self) -> None:
-        """Reverse advance internal cursor."""
+        """Advances internal cursor reversely."""
         if self._cursor == self.start:
             raise IndexError("index out of range")
 

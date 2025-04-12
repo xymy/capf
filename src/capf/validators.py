@@ -16,7 +16,7 @@ class Validator(Generic[T_co], metaclass=abc.ABCMeta):
 
     @abc.abstractmethod
     def __call__(self, value: str) -> T_co:
-        """Convert string to desired type and check whether it is a valid value."""
+        """Converts string to desired type and checks whether it is a valid value."""
         raise NotImplementedError
 
 
@@ -90,12 +90,11 @@ class FloatValidator(Validator[float]):
 class ChoiceValidator(Validator[T_co]):
     """The base class for choice validators.
 
-    Parameters
-    ----------
-    choices : collections.abc.Sequence[T_co]
-        The list of possible values.
-    validator : Validator[T_co]
-        The validator used to convert string to desired type.
+    Args:
+        choices (collections.abc.Sequence[T_co]):
+            The list of possible values.
+        validator (Validator[T_co]):
+            The validator used to convert string to desired type.
     """
 
     __slots__ = ("choices", "validator")
@@ -125,16 +124,17 @@ class ChoiceValidator(Validator[T_co]):
 class StrChoiceValidator(ChoiceValidator[str]):
     """The validator used to check whether string is in a list.
 
-    Parameters
-    ----------
-    choices : collections.abc.Sequence[str]
-        The list of possible values.
-    ignore_case : bool, default=False
-        If ``True``, ignore case when checking the value.
-    norm_case : bool, default=False
-        If ``True``, return the normalized case of the value. That means, the value will be remapped to its equivalent
-        in the ``choices``. For example, if the ``choices`` is ``["Android", "iOS"]`` and the value is ``"ios"``, the
-        return value will be ``"iOS"``. This has no effect if ``ignore_case`` is ``False``.
+    Args:
+        choices (collections.abc.Sequence[str])
+            The list of possible values.
+        ignore_case (bool, default=False)
+            Indicates whether to ignore case when checking the value.
+        norm_case (bool, default=False)
+            Indicates whether to return the normalized case of the value. That
+            means, the value will be remapped to its equivalent in ``choices``.
+            For example, if ``choices`` is ``["Android", "iOS"]`` and the value
+            is ``"ios"``, the return value will be ``"iOS"``. This has no effect
+            if ``ignore_case`` is ``False``.
     """
 
     __slots__ = ("ignore_case", "norm_case")
@@ -167,10 +167,9 @@ class StrChoiceValidator(ChoiceValidator[str]):
 class IntChoiceValidator(ChoiceValidator[int]):
     """The validator used to convert string to integer and check whether it is in a list.
 
-    Parameters
-    ----------
-    choices : collections.abc.Sequence[int]
-        The list of possible values.
+    Args:
+        choices (collections.abc.Sequence[int])
+            The list of possible values.
     """
 
     __slots__ = ()
@@ -182,10 +181,9 @@ class IntChoiceValidator(ChoiceValidator[int]):
 class FloatChoiceValidator(ChoiceValidator[float]):
     """The validator used to convert string to floating point number and check whether it is in a list.
 
-    Parameters
-    ----------
-    choices : collections.abc.Sequence[float]
-        The list of possible values.
+    Args:
+        choices (collections.abc.Sequence[float])
+            The list of possible values.
     """
 
     __slots__ = ()
@@ -215,18 +213,18 @@ class DateTimeValidator(Validator[datetime]):
 class PathValidator(Validator[Path]):
     """The validator used to convert string to filesystem path.
 
-    Parameters
-    ----------
-    resolve : bool, default=False
-        If ``True``, resolve the path using :meth:`pathlib.Path.resolve`.
-    exists : bool, default=False
-        If ``True``, check whether the path exists.
-    readable : bool, default=False
-        If ``True``, check whether the path is readable.
-    writable : bool, default=False
-        If ``True``, check whether the path is writable.
-    executable : bool, default=False
-        If ``True``, check whether the path is executable.
+    Args:
+        resolve (bool, default=False)
+            Indicates whether to resolve the path using
+            :meth:`pathlib.Path.resolve`.
+        exists (bool, default=False)
+            Indicates whether to check the path exists.
+        readable (bool, default=False)
+            Indicates whether to check the path is readable.
+        writable (bool, default=False)
+            Indicates whether to check the path is writable.
+        executable (bool, default=False)
+            Indicates whether to check the path is executable.
     """
 
     __slots__ = ("executable", "exists", "readable", "resolve", "writable")
@@ -296,7 +294,7 @@ class FilePathValidator(PathValidator):
 
 
 def resolve_validator(validator: type | Validator | None) -> Validator:
-    """Resolve common types to validators.
+    """Resolves common types to validators.
 
     +----------------------------+------------------------------+
     | Input                      | Output                       |
