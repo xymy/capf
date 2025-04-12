@@ -1,21 +1,26 @@
 from collections.abc import Sequence
+from typing import Generic, TypeVar
+
+T = TypeVar("T")
 
 
-class Reader:
+class Reader(Generic[T]):
     """Wrapper for stream reading with rollback.
 
     Args:
-        tokens (collections.abc.Sequence[str]):
+        tokens (collections.abc.Sequence[T]):
             The tokens to read.
         start (int | None, default=None):
-            The start index of the tokens. If ``None``, use ``0``.
+            The start index of the tokens. If ``None``, ``0`` will be used.
         end (int | None, default=None):
-            The end index of the tokens. If ``None``, use ``len(tokens)``.
+            The end index of the tokens. If ``None``, ``len(tokens)`` will be
+            used.
     """
 
     def __init__(
         self,
-        tokens: Sequence[str],
+        tokens: Sequence[T],
+        *,
         start: int | None = None,
         end: int | None = None,
     ) -> None:
@@ -35,6 +40,7 @@ class Reader:
         self.tokens = tokens
         self.start = start
         self.end = end
+
         self._cursor = start
 
     @property
@@ -46,7 +52,7 @@ class Reader:
         """Returns ``True`` if there is no more token."""
         return self._cursor == self.end
 
-    def get(self) -> str:
+    def get(self) -> T:
         """Gets the current token and advances internal cursor."""
         if self._cursor == self.end:
             raise IndexError("index out of range")
