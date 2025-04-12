@@ -14,7 +14,12 @@ class Reader:
         The end index of the tokens. If ``None``, use ``len(tokens)``.
     """
 
-    def __init__(self, tokens: Sequence[str], start: int | None = None, end: int | None = None) -> None:
+    def __init__(
+        self,
+        tokens: Sequence[str],
+        start: int | None = None,
+        end: int | None = None,
+    ) -> None:
         if start is None:
             start = 0
         elif start < 0:

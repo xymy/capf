@@ -44,7 +44,9 @@ class Adaptor(metaclass=abc.ABCMeta):
 class ValueAdaptor(Adaptor, Generic[T, S]):
     __slots__ = ("validator", "value_parsed")
 
-    def __init__(self, validator: "Validator[T]", *, default_value: S | None = None) -> None:
+    def __init__(
+        self, validator: "Validator[T]", *, default_value: S | None = None
+    ) -> None:
         super().__init__(num_values=1)
         self.validator = validator
         self.value_parsed = default_value

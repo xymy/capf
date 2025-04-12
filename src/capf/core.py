@@ -12,7 +12,13 @@ T = TypeVar("T")
 
 class Argument:
     def __init__(
-        self, id: str, decl: str, *, adaptor: "Adaptor", multiple: bool = False, required: bool = True
+        self,
+        id: str,
+        decl: str,
+        *,
+        adaptor: "Adaptor",
+        multiple: bool = False,
+        required: bool = True,
     ) -> None:
         self.id = id
         self.argument = self._parse_decl(decl)
@@ -28,7 +34,14 @@ class Argument:
 
 
 class Option:
-    def __init__(self, id: str, *decls: str, adaptor: "Adaptor", multiple: bool = True, required: bool = False) -> None:
+    def __init__(
+        self,
+        id: str,
+        *decls: str,
+        adaptor: "Adaptor",
+        multiple: bool = True,
+        required: bool = False,
+    ) -> None:
         self.id = id
         self.long_options, self.short_options = self._parse_decls(*decls)
         self.adaptor = adaptor
@@ -46,21 +59,33 @@ class Option:
             if decl.startswith("--"):
                 text = decl[2:]
                 if not text:
-                    raise CliSetupError("Invalid decls: Empty string following prefix is not allowed.")
+                    raise CliSetupError(
+                        "Invalid decls: Empty string following prefix is not allowed."
+                    )
                 if len(text) < 2:
-                    raise CliSetupError(f"Invalid decls: Long option {decl!r} is too short.")
+                    raise CliSetupError(
+                        f"Invalid decls: Long option {decl!r} is too short."
+                    )
                 long_options.append(text)
             elif decl.startswith("-"):
                 text = decl[1:]
                 if not text:
-                    raise CliSetupError("Invalid decls: Empty string following prefix is not allowed.")
+                    raise CliSetupError(
+                        "Invalid decls: Empty string following prefix is not allowed."
+                    )
                 if len(text) > 1:
-                    raise CliSetupError(f"Invalid decls: Short option {decl!r} is too long.")
+                    raise CliSetupError(
+                        f"Invalid decls: Short option {decl!r} is too long."
+                    )
                 short_options.append(text)
             elif not decl:
-                raise CliSetupError("Invalid decls: Empty string is not allowed.")
+                raise CliSetupError(
+                    "Invalid decls: Empty string is not allowed."
+                )
             else:
-                raise CliSetupError(f"Invalid decls: {decl!r} does not start with prefix.")
+                raise CliSetupError(
+                    f"Invalid decls: {decl!r} does not start with prefix."
+                )
         return long_options, short_options
 
 
@@ -136,7 +161,14 @@ class OptionGroup(Group[Option]):
         If ``True``, require at least one option in this group to be provided.
     """
 
-    def __init__(self, id: str, title: str, *, multiple: bool = True, required: bool = False) -> None:
+    def __init__(
+        self,
+        id: str,
+        title: str,
+        *,
+        multiple: bool = True,
+        required: bool = False,
+    ) -> None:
         super().__init__(id, title)
         self.multiple = multiple
         self.required = required
@@ -192,8 +224,17 @@ class Command:
         option_group.add(option)
         return option
 
-    def add_option_group(self, id: str, title: str, *, multiple: bool = True, required: bool = False) -> OptionGroup:
-        option_group = OptionGroup(id, title, multiple=multiple, required=required)
+    def add_option_group(
+        self,
+        id: str,
+        title: str,
+        *,
+        multiple: bool = True,
+        required: bool = False,
+    ) -> OptionGroup:
+        option_group = OptionGroup(
+            id, title, multiple=multiple, required=required
+        )
         self.option_groups.append(option_group)
         return option_group
 
@@ -225,7 +266,9 @@ class Program:
         self.version = version
 
         self.exit_code_for_invalid_cli = exit_code_for_invalid_cli
-        self.exit_code_for_unhandled_exception = exit_code_for_unhandled_exception
+        self.exit_code_for_unhandled_exception = (
+            exit_code_for_unhandled_exception
+        )
 
     def run(self, argv: list[str] | None = None) -> int:
         argv = self._resolve_argv(argv)

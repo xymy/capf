@@ -82,7 +82,9 @@ class FloatValidator(Validator[float]):
         try:
             return float(value)
         except ValueError as e:
-            raise ValueError(f"{value!r} is not a valid floating point number.") from e
+            raise ValueError(
+                f"{value!r} is not a valid floating point number."
+            ) from e
 
 
 class ChoiceValidator(Validator[T_co]):
@@ -98,7 +100,9 @@ class ChoiceValidator(Validator[T_co]):
 
     __slots__ = ("choices", "validator")
 
-    def __init__(self, choices: Sequence[T_co], validator: Validator[T_co]) -> None:
+    def __init__(
+        self, choices: Sequence[T_co], validator: Validator[T_co]
+    ) -> None:
         super().__init__()
         if not choices:
             raise ValueError("Empty choices is not allowed.")
@@ -135,7 +139,13 @@ class StrChoiceValidator(ChoiceValidator[str]):
 
     __slots__ = ("ignore_case", "norm_case")
 
-    def __init__(self, choices: Sequence[str], *, ignore_case: bool = False, norm_case: bool = False) -> None:
+    def __init__(
+        self,
+        choices: Sequence[str],
+        *,
+        ignore_case: bool = False,
+        norm_case: bool = False,
+    ) -> None:
         super().__init__(choices, StrValidator())
         self.ignore_case = ignore_case
         self.norm_case = norm_case
