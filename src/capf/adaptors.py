@@ -75,7 +75,7 @@ class ListAdaptor(ValueAdaptor[T, list[T]]):
 class FlagAdaptor(Adaptor, Generic[S]):
     __slots__ = ("value_parsed",)
 
-    def __init__(self, default_value: S | None = None) -> None:
+    def __init__(self, *, default_value: S | None = None) -> None:
         super().__init__(num_values=0)
         self.value_parsed = default_value
 
