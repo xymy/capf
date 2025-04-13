@@ -1,3 +1,5 @@
+from dataclasses import dataclass
+
 from .adaptors import Adaptor
 from .core import Argument, Command, Option
 from .exceptions import CliParsingError
@@ -16,9 +18,11 @@ class CommandConsumer:
                 cmap[subcommand.name] = subcommand
         return cmap
 
-    def consume_command(self, token: str) -> None:
-        if token not in self.cmap:
+    def consume(self, token: str) -> Command:
+        subcommand = self.cmap.get(token, None)
+        if subcommand is None:
             raise CliParsingError(f"Unknown command: {token!r}.")
+        return subcommand
 
 
 class ArgumentConsumer:
@@ -34,7 +38,7 @@ class ArgumentConsumer:
                 aseq.append(argument)
         return aseq
 
-    def consume_argument(self, token: str) -> None:
+    def consume(self, token: str) -> None:
         if self.areader.is_eof():
             raise CliParsingError(f"Too many arguments: {token!r}.")
         argument = self.areader.get()
@@ -67,7 +71,7 @@ class OptionConsumer:
                     lmap[long_option] = option
         return smap, lmap
 
-    def consume_long_option(self, token: str, reader: Reader) -> None:
+    def consume_long(self, token: str, reader: Reader) -> None:
         token = token.removeprefix("--")
         if "=" in token:  # --option=value
             name, value = token.split("=", 1)
@@ -88,7 +92,7 @@ class OptionConsumer:
                     )
                 adaptor([reader.get()])
 
-    def consume_short_option(self, token: str, reader: Reader[str]) -> None:
+    def consume_short(self, token: str, reader: Reader[str]) -> None:
         token = token.removeprefix("-")
         creader = Reader(token)
         while not creader.is_eof():
@@ -121,6 +125,11 @@ class OptionConsumer:
         return option, option.adaptor
 
 
+@dataclass
+class ParserResult:
+    command: Command | None = None
+
+
 class Parser:
     def __init__(self, command: Command) -> None:
         if command.command_groups and command.argument_groups:
@@ -132,13 +141,14 @@ class Parser:
         self.argument_consumer = ArgumentConsumer(command)
         self.option_consumer = OptionConsumer(command)
 
-    def parse(self, reader: Reader[str]) -> None:
+    def parse(self, reader: Reader[str]) -> ParserResult:
         if self.command.is_leaf():
-            self._parse_leaf(reader)
+            result = self._parse_leaf(reader)
         else:
-            self._parse_node(reader)
+            result = self._parse_node(reader)
+        return result
 
-    def _parse_leaf(self, reader: Reader[str]) -> None:
+    def _parse_leaf(self, reader: Reader[str]) -> ParserResult:
         double_hyphen = False
         while not reader.is_eof():
             token = reader.get()
@@ -147,18 +157,19 @@ class Parser:
                 break
 
             if token.startswith("--"):
-                self.option_consumer.consume_long_option(token, reader)
+                self.option_consumer.consume_long(token, reader)
             elif token.startswith("-"):
-                self.option_consumer.consume_short_option(token, reader)
+                self.option_consumer.consume_short(token, reader)
             else:
-                self.argument_consumer.consume_argument(token)
+                self.argument_consumer.consume(token)
 
         if double_hyphen:
             while not reader.is_eof():
                 token = reader.get()
-                self.argument_consumer.consume_argument(token)
+                self.argument_consumer.consume(token)
+        return ParserResult()
 
-    def _parse_node(self, reader: Reader[str]) -> None:
+    def _parse_node(self, reader: Reader[str]) -> ParserResult:
         double_hyphen = False
         while not reader.is_eof():
             token = reader.get()
@@ -167,13 +178,16 @@ class Parser:
                 break
 
             if token.startswith("--"):
-                self.option_consumer.consume_long_option(token, reader)
+                self.option_consumer.consume_long(token, reader)
             elif token.startswith("-"):
-                self.option_consumer.consume_short_option(token, reader)
+                self.option_consumer.consume_short(token, reader)
             else:
-                self.command_consumer.consume_command(token)
+                subcomand = self.command_consumer.consume(token)
+                return ParserResult(subcomand)
 
         if double_hyphen:
             while not reader.is_eof():
                 token = reader.get()
-                self.command_consumer.consume_command(token)
+                subcomand = self.command_consumer.consume(token)
+                return ParserResult(subcomand)
+        return ParserResult()
