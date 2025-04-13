@@ -234,6 +234,9 @@ class Command:
         self.option_groups.append(option_group)
         return option_group
 
+    def is_leaf(self) -> bool:
+        return not self.command_groups
+
 
 class Program:
     """The program.
