@@ -3,9 +3,11 @@ from collections.abc import Callable, Iterator
 from typing import TYPE_CHECKING, Any, Generic, NoReturn, TypeVar
 
 from .exceptions import CliMessage, CliParsingError, CliSetupError
+from .reader import Reader
 
 if TYPE_CHECKING:
     from .adaptors import Adaptor
+    from .parser import ParserResult
 
 T = TypeVar("T")
 
@@ -234,6 +236,12 @@ class Command:
         self.option_groups.append(option_group)
         return option_group
 
+    def parse(self, reader: Reader[str]) -> "ParserResult":
+        from .parser import Parser
+
+        parser = Parser(self)
+        return parser.parse(reader)
+
     def is_leaf(self) -> bool:
         return not self.command_groups
 
@@ -270,16 +278,19 @@ class Program:
             exit_code_for_unhandled_exception
         )
 
-    def run(self, argv: list[str] | None = None) -> int:
+    def run(self, cmd: Command, argv: list[str] | None = None) -> int:
         argv = self._resolve_argv(argv)
-
+        reader = Reader(argv)
+        cmd.parse(reader)
         return 0
 
-    def run_and_exit(self, argv: list[str] | None = None) -> NoReturn:
+    def run_and_exit(
+        self, cmd: Command, argv: list[str] | None = None
+    ) -> NoReturn:
         argv = self._resolve_argv(argv)
 
         try:
-            sys.exit(self.run(argv))
+            sys.exit(self.run(cmd, argv))
         except CliMessage as e:
             sys.exit(e.status)
         except CliParsingError as e:
