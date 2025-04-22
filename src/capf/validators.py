@@ -2,6 +2,7 @@ import abc
 import os
 import stat
 from collections.abc import Sequence
+from contextlib import suppress
 from datetime import datetime
 from pathlib import Path
 from typing import Generic, TypeVar
@@ -193,19 +194,42 @@ class FloatChoiceValidator(ChoiceValidator[float]):
 class DateTimeValidator(Validator[datetime]):
     """The validator used to convert string to date-time.
 
+    Args:
+        formats (Sequence[str] | None, default=None)
+            The date-time formats used when parsing from string.
+
+    .. note::
+
+        By default, the following date-time formats will be recognized:
+
+        - ``%Y-%m-%dT%H:%M:%S.%f``
+        - ``"%Y-%m-%dT%H:%M:%S"``
+        - ``%Y-%m-%d``
+
     .. seealso::
 
         - https://docs.python.org/3/library/datetime.html#strftime-and-strptime-behavior
         - https://datatracker.ietf.org/doc/html/rfc3339
     """
 
-    __slots__ = ()
+    __slots__ = ("formats",)
+
+    def __init__(self, formats: Sequence[str] | None = None) -> None:
+        super().__init__()
+        if formats is None:
+            formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"]
+        self.formats = formats
 
     def __call__(self, value: str) -> datetime:
-        try:
-            return datetime.fromisoformat(value)
-        except ValueError as e:
-            raise ValueError(f"{value!r} is not a valid date-time.") from e
+        for format in self.formats:
+            with suppress(ValueError):
+                return datetime.strptime(value, format)
+        formats_str = ", ".join(map(repr, self.formats))
+        if len(self.formats) == 1:
+            hint = f"Valid format is {formats_str}."
+        else:
+            hint = f"Valid formats are {formats_str}."
+        raise ValueError(f"{value!r} is not a valid date-time. {hint}")
 
 
 class PathValidator(Validator[Path]):
