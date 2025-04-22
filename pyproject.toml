@@ -34,6 +34,12 @@ dependencies = [
 ]
 dynamic = ["version"]
 
+[project.urls]
+Homepage = "https://github.com/xymy/capf"
+Download = "https://pypi.org/project/capf/"
+Source = "https://github.com/xymy/capf"
+Tracker = "https://github.com/xymy/capf/issues"
+
 [dependency-groups]
 docs = [
     # https://www.sphinx-doc.org/en/master/
