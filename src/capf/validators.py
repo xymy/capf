@@ -6,16 +6,16 @@ from datetime import datetime
 from pathlib import Path
 from typing import Generic, TypeVar
 
-T_co = TypeVar("T_co", covariant=True)
+T = TypeVar("T")
 
 
-class Validator(Generic[T_co], metaclass=abc.ABCMeta):
+class Validator(Generic[T], metaclass=abc.ABCMeta):
     """The abstract base class for validators."""
 
     __slots__ = ()
 
     @abc.abstractmethod
-    def __call__(self, value: str) -> T_co:
+    def __call__(self, value: str) -> T:
         """Converts string to desired type and checks whether it is a valid value."""
         raise NotImplementedError
 
@@ -87,28 +87,26 @@ class FloatValidator(Validator[float]):
             ) from e
 
 
-class ChoiceValidator(Validator[T_co]):
+class ChoiceValidator(Validator[T]):
     """The base class for choice validators.
 
     Args:
-        choices (collections.abc.Sequence[T_co]):
+        choices (collections.abc.Sequence[T]):
             The list of possible values.
-        validator (Validator[T_co]):
+        validator (Validator[T]):
             The validator used to convert string to desired type.
     """
 
     __slots__ = ("choices", "validator")
 
-    def __init__(
-        self, choices: Sequence[T_co], validator: Validator[T_co]
-    ) -> None:
+    def __init__(self, choices: Sequence[T], validator: Validator[T]) -> None:
         super().__init__()
         if not choices:
             raise ValueError("Empty choices is not allowed.")
         self.choices = list(choices)
         self.validator = validator
 
-    def __call__(self, value: str) -> T_co:
+    def __call__(self, value: str) -> T:
         value_parsed = self.validator(value)
         if value_parsed not in self.choices:
             raise ValueError(self._get_error_message(value))
