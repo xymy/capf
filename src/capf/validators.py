@@ -191,6 +191,80 @@ class FloatChoiceValidator(ChoiceValidator[float]):
         super().__init__(choices, FloatValidator())
 
 
+class RangeValidator(Validator[T]):
+    """The base class for range validators.
+
+    Args:
+        validator (Validator[T]):
+            The validator used to convert string to desired type.
+        min (T | None, default=None):
+            The minimum value.
+        max (T | None, default=None):
+            The maximum value.
+    """
+
+    __slots__ = ("max", "min", "validator")
+
+    def __init__(
+        self,
+        validator: Validator[T],
+        min: T | None = None,
+        max: T | None = None,
+    ) -> None:
+        super().__init__()
+        if min is not None and max is not None and min > max:  # type: ignore [operator]
+            raise ValueError("min must be less than or equal to max.")
+        self.validator = validator
+        self.min = min
+        self.max = max
+
+    def __call__(self, value: str) -> T:
+        value_parsed = self.validator(value)
+        if self.min is not None and value_parsed < self.min:  # type: ignore [operator]
+            raise ValueError(
+                f"{value!r} must be greater than or equal to {self.min!r}."
+            )
+        if self.max is not None and value_parsed > self.max:  # type: ignore [operator]
+            raise ValueError(
+                f"{value!r} must be less than or equal to {self.max!r}."
+            )
+        return value_parsed
+
+
+class IntRangeValidator(RangeValidator[int]):
+    """The validator used to convert string to integer and check whether it is in a range.
+
+    Args:
+        min (int | None, default=None)
+            The minimum value.
+        max (int | None, default=None)
+            The maximum value.
+    """
+
+    __slots__ = ()
+
+    def __init__(self, min: int | None = None, max: int | None = None) -> None:
+        super().__init__(IntValidator(), min, max)
+
+
+class FloatRangeValidator(RangeValidator[float]):
+    """The validator used to convert string to floating point number and check whether it is in a range.
+
+    Args:
+        min (float | None, default=None)
+            The minimum value.
+        max (float | None, default=None)
+            The maximum value.
+    """
+
+    __slots__ = ()
+
+    def __init__(
+        self, min: float | None = None, max: float | None = None
+    ) -> None:
+        super().__init__(FloatValidator(), min, max)
+
+
 class DateTimeValidator(Validator[datetime]):
     """The validator used to convert string to date-time.
 
