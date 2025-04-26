@@ -92,20 +92,20 @@ class ChoiceValidator(Validator[T]):
     """The base class for choice validators.
 
     Args:
-        choices (collections.abc.Sequence[T]):
-            The list of possible values.
         validator (Validator[T]):
             The validator used to convert string to desired type.
+        choices (collections.abc.Sequence[T]):
+            The list of possible values.
     """
 
     __slots__ = ("choices", "validator")
 
-    def __init__(self, choices: Sequence[T], validator: Validator[T]) -> None:
+    def __init__(self, validator: Validator[T], choices: Sequence[T]) -> None:
         super().__init__()
         if not choices:
-            raise ValueError("Empty choices is not allowed.")
-        self.choices = list(choices)
+            raise ValueError("choices must be non-empty.")
         self.validator = validator
+        self.choices = list(choices)
 
     def __call__(self, value: str) -> T:
         value_parsed = self.validator(value)
@@ -145,7 +145,7 @@ class StrChoiceValidator(ChoiceValidator[str]):
         ignore_case: bool = False,
         norm_case: bool = False,
     ) -> None:
-        super().__init__(choices, StrValidator())
+        super().__init__(StrValidator(), choices)
         self.ignore_case = ignore_case
         self.norm_case = norm_case
 
@@ -174,7 +174,7 @@ class IntChoiceValidator(ChoiceValidator[int]):
     __slots__ = ()
 
     def __init__(self, choices: Sequence[int]) -> None:
-        super().__init__(choices, IntValidator())
+        super().__init__(IntValidator(), choices)
 
 
 class FloatChoiceValidator(ChoiceValidator[float]):
@@ -188,7 +188,7 @@ class FloatChoiceValidator(ChoiceValidator[float]):
     __slots__ = ()
 
     def __init__(self, choices: Sequence[float]) -> None:
-        super().__init__(choices, FloatValidator())
+        super().__init__(FloatValidator(), choices)
 
 
 class RangeValidator(Validator[T]):
@@ -292,7 +292,9 @@ class DateTimeValidator(Validator[datetime]):
         super().__init__()
         if formats is None:
             formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"]
-        self.formats = formats
+        elif not formats:
+            raise ValueError("formats must be non-empty.")
+        self.formats = list(formats)
 
     def __call__(self, value: str) -> datetime:
         for format in self.formats:
