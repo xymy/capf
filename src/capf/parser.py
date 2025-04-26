@@ -1,6 +1,6 @@
 from dataclasses import dataclass
 
-from .adaptors import Adaptor
+from .adaptors import Adaptor, ValueSource
 from .core import Argument, Command, Option
 from .exceptions import CliParsingError
 from .reader import Reader
@@ -42,7 +42,7 @@ class ArgumentConsumer:
         if self.areader.is_eof():
             raise CliParsingError(f"Too many arguments: {token!r}.")
         argument = self.areader.get()
-        argument.adaptor([token])
+        argument.adaptor([token], source=ValueSource.CLI)
         if argument.multiple:
             self.areader.put()
 
@@ -80,17 +80,17 @@ class OptionConsumer:
                 raise CliParsingError(
                     f"Option --{name!r} does not take a value."
                 )
-            adaptor([value])
+            adaptor([value], source=ValueSource.CLI)
         else:  # --option [value]
             _, adaptor = self._get_long_option(token)
             if adaptor.num_values == 0:
-                adaptor([])
+                adaptor([], source=ValueSource.CLI)
             else:
                 if reader.is_eof():
                     raise CliParsingError(
                         f"Option --{token!r} requires a value."
                     )
-                adaptor([reader.get()])
+                adaptor([reader.get()], source=ValueSource.CLI)
 
     def consume_short(self, token: str, reader: Reader[str]) -> None:
         token = token.removeprefix("-")
@@ -99,7 +99,7 @@ class OptionConsumer:
             name = creader.get()
             _, adaptor = self._get_short_option(name)
             if adaptor.num_values == 0:
-                adaptor([])
+                adaptor([], source=ValueSource.CLI)
             else:
                 if not creader.is_eof():  # -ovalue
                     value = token[creader.cursor :]
@@ -109,7 +109,7 @@ class OptionConsumer:
                             f"Option -{name!r} requires a value."
                         )
                     value = reader.get()
-                adaptor([value])
+                adaptor([value], source=ValueSource.CLI)
                 break  # end of parsing
 
     def _get_long_option(self, name: str) -> tuple[Option, Adaptor]:
