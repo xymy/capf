@@ -37,8 +37,8 @@ class BoolValidator(Validator[bool]):
 
         The following values will be recognized (case insensitive):
 
-        - ``True``: ``"t"``, ``"true"``, ``"y"``, ``"yes"``, ``"on"``, ``"1"``.
-        - ``False``: ``"f"``, ``"false"``, ``"n"``, ``"no"``, ``"off"``, ``"0"``.
+        - ``True``: ``t``, ``true``, ``y``, ``yes``, ``on``, ``1``.
+        - ``False``: ``f``, ``false``, ``n``, ``no``, ``off``, ``0``.
     """
 
     __slots__ = ()
@@ -405,23 +405,32 @@ class FilePathValidator(PathValidator):
 def resolve_validator(validator: type | Validator | None) -> Validator:
     """Resolves common types to validators.
 
-    +----------------------------+------------------------------+
-    | Input                      | Output                       |
-    +============================+==============================+
-    | ``None``                   | :class:`StrValidator()`      |
-    +----------------------------+------------------------------+
-    | :class:`str`               | :class:`StrValidator()`      |
-    +----------------------------+------------------------------+
-    | :class:`bool`              | :class:`BoolValidator()`     |
-    +----------------------------+------------------------------+
-    | :class:`int`               | :class:`IntValidator()`      |
-    +----------------------------+------------------------------+
-    | :class:`float`             | :class:`FloatValidator()`    |
-    +----------------------------+------------------------------+
-    | :class:`datetime.datetime` | :class:`DateTimeValidator()` |
-    +----------------------------+------------------------------+
-    | :class:`pathlib.Path`      | :class:`PathValidator()`     |
-    +----------------------------+------------------------------+
+    Args:
+        validator (type | Validator | None):
+            The type or validator to resolve. If already a validator, it will be
+            returned as is.
+
+    .. note::
+
+        The following types will be resolved to their corresponding validators:
+
+        +----------------------------+------------------------------+
+        | Input                      | Output                       |
+        +============================+==============================+
+        | :data:`None`               | :class:`StrValidator()`      |
+        +----------------------------+------------------------------+
+        | :class:`str`               | :class:`StrValidator()`      |
+        +----------------------------+------------------------------+
+        | :class:`bool`              | :class:`BoolValidator()`     |
+        +----------------------------+------------------------------+
+        | :class:`int`               | :class:`IntValidator()`      |
+        +----------------------------+------------------------------+
+        | :class:`float`             | :class:`FloatValidator()`    |
+        +----------------------------+------------------------------+
+        | :class:`datetime.datetime` | :class:`DateTimeValidator()` |
+        +----------------------------+------------------------------+
+        | :class:`pathlib.Path`      | :class:`PathValidator()`     |
+        +----------------------------+------------------------------+
     """
     if isinstance(validator, Validator):
         return validator
