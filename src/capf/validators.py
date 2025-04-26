@@ -276,9 +276,11 @@ class DateTimeValidator(Validator[datetime]):
 
         By default, the following date-time formats will be recognized:
 
-        - ``%Y-%m-%dT%H:%M:%S.%f``
-        - ``"%Y-%m-%dT%H:%M:%S"``
-        - ``%Y-%m-%d``
+        - ``%Y-%m-%dT%H:%M:%S.%f%z`` (2025-01-01T20:00:00.000000+08:00)
+        - ``%Y-%m-%dT%H:%M:%S.%f`` (2025-01-01T20:00:00.000000)
+        - ``%Y-%m-%dT%H:%M:%S%z`` (2025-01-01T20:00:00+08:00)
+        - ``%Y-%m-%dT%H:%M:%S`` (2025-01-01T20:00:00)
+        - ``%Y-%m-%d`` (2025-01-01)
 
     .. seealso::
 
@@ -291,7 +293,13 @@ class DateTimeValidator(Validator[datetime]):
     def __init__(self, formats: Sequence[str] | None = None) -> None:
         super().__init__()
         if formats is None:
-            formats = ["%Y-%m-%dT%H:%M:%S.%f", "%Y-%m-%dT%H:%M:%S", "%Y-%m-%d"]
+            formats = [
+                "%Y-%m-%dT%H:%M:%S.%f%z",
+                "%Y-%m-%dT%H:%M:%S.%f",
+                "%Y-%m-%dT%H:%M:%S%z",
+                "%Y-%m-%dT%H:%M:%S",
+                "%Y-%m-%d",
+            ]
         elif not formats:
             raise ValueError("formats must be non-empty.")
         self.formats = list(formats)
@@ -300,12 +308,15 @@ class DateTimeValidator(Validator[datetime]):
         for format in self.formats:
             with suppress(ValueError):
                 return datetime.strptime(value, format)
+        raise ValueError(self._get_error_message(value))
+
+    def _get_error_message(self, value: str) -> str:
         formats_str = ", ".join(map(repr, self.formats))
-        if len(self.formats) == 1:
-            hint = f"Valid format is {formats_str}."
-        else:
-            hint = f"Valid formats are {formats_str}."
-        raise ValueError(f"{value!r} is not a valid date-time. {hint}")
+        if len(self.formats) < 2:
+            return f"{value!r} does not match date-time format {formats_str}."
+        return (
+            f"{value!r} does not match any of date-time formats {formats_str}."
+        )
 
 
 class PathValidator(Validator[Path]):
