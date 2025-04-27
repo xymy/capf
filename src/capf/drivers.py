@@ -25,8 +25,8 @@ class ValueSource(enum.Enum):
     ENV = 2
 
 
-class Adaptor(metaclass=abc.ABCMeta):
-    """The abstract base class for adaptors.
+class Driver(metaclass=abc.ABCMeta):
+    """The abstract base class for drivers.
 
     Args:
         num_values (int):
@@ -62,7 +62,7 @@ class Adaptor(metaclass=abc.ABCMeta):
         raise NotImplementedError
 
 
-class ValueAdaptor(Adaptor, Generic[T, S]):
+class ValueDriver(Driver, Generic[T, S]):
     __slots__ = ("validator", "value_parsed")
 
     def __init__(
@@ -73,7 +73,7 @@ class ValueAdaptor(Adaptor, Generic[T, S]):
         self.value_parsed = default_value
 
 
-class ScalarAdaptor(ValueAdaptor[T, T]):
+class ScalarDriver(ValueDriver[T, T]):
     __slots__ = ()
 
     def __call__(self, values: list[str], *, source: ValueSource) -> None:
@@ -83,7 +83,7 @@ class ScalarAdaptor(ValueAdaptor[T, T]):
         self._value_source = source
 
 
-class ListAdaptor(ValueAdaptor[T, list[T]]):
+class ListDriver(ValueDriver[T, list[T]]):
     __slots__ = ()
 
     def __call__(self, values: list[str], *, source: ValueSource) -> None:
@@ -95,7 +95,7 @@ class ListAdaptor(ValueAdaptor[T, list[T]]):
         self._value_source = source
 
 
-class FlagAdaptor(Adaptor, Generic[S]):
+class FlagDriver(Driver, Generic[S]):
     __slots__ = ("value_parsed",)
 
     def __init__(self, *, default_value: S | None = None) -> None:
@@ -103,7 +103,7 @@ class FlagAdaptor(Adaptor, Generic[S]):
         self.value_parsed = default_value
 
 
-class OnFlagAdaptor(FlagAdaptor):
+class OnFlagDriver(FlagDriver):
     __slots__ = ()
 
     def __init__(self) -> None:
@@ -116,7 +116,7 @@ class OnFlagAdaptor(FlagAdaptor):
         self._value_source = source
 
 
-class OffFlagAdaptor(FlagAdaptor):
+class OffFlagDriver(FlagDriver):
     __slots__ = ()
 
     def __init__(self) -> None:
@@ -129,7 +129,7 @@ class OffFlagAdaptor(FlagAdaptor):
         self._value_source = source
 
 
-class CountFlagAdaptor(FlagAdaptor[int]):
+class CountFlagDriver(FlagDriver[int]):
     __slots__ = ()
 
     def __init__(self) -> None:
@@ -144,14 +144,14 @@ class CountFlagAdaptor(FlagAdaptor[int]):
         self._value_source = source
 
 
-class MessageAdaptor(FlagAdaptor):
+class MessageDriver(FlagDriver):
     __slots__ = ()
 
     def __init__(self) -> None:
         super().__init__()
 
 
-class HelpAdaptor(MessageAdaptor):
+class HelpDriver(MessageDriver):
     __slots__ = ()
 
     def __call__(self, values: list[str], *, source: ValueSource) -> None:
@@ -161,7 +161,7 @@ class HelpAdaptor(MessageAdaptor):
         raise CliMessage("help")
 
 
-class VersionAdaptor(MessageAdaptor):
+class VersionDriver(MessageDriver):
     __slots__ = ()
 
     def __call__(self, values: list[str], *, source: ValueSource) -> None:

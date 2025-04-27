@@ -6,7 +6,7 @@ from .exceptions import CliMessage, CliParsingError, CliSetupError
 from .reader import Reader
 
 if TYPE_CHECKING:
-    from .adaptors import Adaptor
+    from .drivers import Driver
     from .parser import ParserResult
 
 T = TypeVar("T")
@@ -18,13 +18,13 @@ class Argument:
         id: str,
         decl: str,
         *,
-        adaptor: "Adaptor",
+        driver: "Driver",
         multiple: bool = False,
         required: bool = True,
     ) -> None:
         self.id = id
         self.argument = self._parse_decl(decl)
-        self.adaptor = adaptor
+        self.driver = driver
         self.multiple = multiple
         self.required = required
 
@@ -40,13 +40,13 @@ class Option:
         self,
         id: str,
         *decls: str,
-        adaptor: "Adaptor",
+        driver: "Driver",
         multiple: bool = True,
         required: bool = False,
     ) -> None:
         self.id = id
         self.long_options, self.short_options = self._parse_decls(*decls)
-        self.adaptor = adaptor
+        self.driver = driver
         self.multiple = multiple
         self.required = required
 

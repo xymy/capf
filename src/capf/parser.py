@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
-from .adaptors import Adaptor, ValueSource
 from .core import Argument, Command, Option
+from .drivers import Driver, ValueSource
 from .exceptions import CliParsingError
 from .reader import Reader
 
@@ -42,7 +42,7 @@ class ArgumentConsumer:
         if self.areader.is_eof():
             raise CliParsingError(f"Too many arguments: {token!r}.")
         argument = self.areader.get()
-        argument.adaptor([token], source=ValueSource.CLI)
+        argument.driver([token], source=ValueSource.CLI)
         if argument.multiple:
             self.areader.put()
 
@@ -75,31 +75,31 @@ class OptionConsumer:
         token = token.removeprefix("--")
         if "=" in token:  # --option=value
             name, value = token.split("=", 1)
-            _, adaptor = self._get_long_option(name)
-            if adaptor.num_values == 0:
+            _, driver = self._get_long_option(name)
+            if driver.num_values == 0:
                 raise CliParsingError(
                     f"Option --{name!r} does not take a value."
                 )
-            adaptor([value], source=ValueSource.CLI)
+            driver([value], source=ValueSource.CLI)
         else:  # --option [value]
-            _, adaptor = self._get_long_option(token)
-            if adaptor.num_values == 0:
-                adaptor([], source=ValueSource.CLI)
+            _, driver = self._get_long_option(token)
+            if driver.num_values == 0:
+                driver([], source=ValueSource.CLI)
             else:
                 if reader.is_eof():
                     raise CliParsingError(
                         f"Option --{token!r} requires a value."
                     )
-                adaptor([reader.get()], source=ValueSource.CLI)
+                driver([reader.get()], source=ValueSource.CLI)
 
     def consume_short(self, token: str, reader: Reader[str]) -> None:
         token = token.removeprefix("-")
         creader = Reader(token)
         while not creader.is_eof():
             name = creader.get()
-            _, adaptor = self._get_short_option(name)
-            if adaptor.num_values == 0:
-                adaptor([], source=ValueSource.CLI)
+            _, driver = self._get_short_option(name)
+            if driver.num_values == 0:
+                driver([], source=ValueSource.CLI)
             else:
                 if not creader.is_eof():  # -ovalue
                     value = token[creader.cursor :]
@@ -109,20 +109,20 @@ class OptionConsumer:
                             f"Option -{name!r} requires a value."
                         )
                     value = reader.get()
-                adaptor([value], source=ValueSource.CLI)
+                driver([value], source=ValueSource.CLI)
                 break  # end of parsing
 
-    def _get_long_option(self, name: str) -> tuple[Option, Adaptor]:
+    def _get_long_option(self, name: str) -> tuple[Option, Driver]:
         option = self.lmap.get(name, None)
         if option is None:
             raise CliParsingError(f"Unknown option: {name!r}.")
-        return option, option.adaptor
+        return option, option.driver
 
-    def _get_short_option(self, name: str) -> tuple[Option, Adaptor]:
+    def _get_short_option(self, name: str) -> tuple[Option, Driver]:
         option = self.smap.get(name, None)
         if option is None:
             raise CliParsingError(f"Unknown option: {name!r}.")
-        return option, option.adaptor
+        return option, option.driver
 
 
 @dataclass
