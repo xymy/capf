@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 
 from .core import Argument, Command, Option
-from .drivers import Driver, ValueSource
+from .drivers import Driver, Source
 from .exceptions import CliParsingError
 from .reader import Reader
 
@@ -42,7 +42,7 @@ class ArgumentConsumer:
         if self.areader.is_eof():
             raise CliParsingError(f"Too many arguments: {token!r}.")
         argument = self.areader.get()
-        argument.driver([token], source=ValueSource.CLI)
+        argument.driver([token], source=Source.from_cli(argument.argument))
         if argument.multiple:
             self.areader.put()
 
@@ -80,17 +80,17 @@ class OptionConsumer:
                 raise CliParsingError(
                     f"Option --{name!r} does not take a value."
                 )
-            driver([value], source=ValueSource.CLI)
+            driver([value], source=Source.from_cli(name))
         else:  # --option [value]
             _, driver = self._get_long_option(token)
             if driver.num_values == 0:
-                driver([], source=ValueSource.CLI)
+                driver([], source=Source.from_cli(token))
             else:
                 if reader.is_eof():
                     raise CliParsingError(
                         f"Option --{token!r} requires a value."
                     )
-                driver([reader.get()], source=ValueSource.CLI)
+                driver([reader.get()], source=Source.from_cli(token))
 
     def consume_short(self, token: str, reader: Reader[str]) -> None:
         token = token.removeprefix("-")
@@ -99,7 +99,7 @@ class OptionConsumer:
             name = creader.get()
             _, driver = self._get_short_option(name)
             if driver.num_values == 0:
-                driver([], source=ValueSource.CLI)
+                driver([], source=Source.from_cli(name))
             else:
                 if not creader.is_eof():  # -ovalue
                     value = token[creader.cursor :]
@@ -109,7 +109,7 @@ class OptionConsumer:
                             f"Option -{name!r} requires a value."
                         )
                     value = reader.get()
-                driver([value], source=ValueSource.CLI)
+                driver([value], source=Source.from_cli(name))
                 break  # end of parsing
 
     def _get_long_option(self, name: str) -> tuple[Option, Driver]:
