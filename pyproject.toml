@@ -30,7 +30,7 @@ classifiers = [
 requires-python = ">=3.10"
 dependencies = [
     # https://rich.readthedocs.io/en/latest/
-    "rich>=13.9",
+    "rich>=14.0",
 ]
 dynamic = ["version"]
 
