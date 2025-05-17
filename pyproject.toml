@@ -42,6 +42,8 @@ Tracker = "https://github.com/xymy/capf/issues"
 
 [dependency-groups]
 docs = [
+    # https://click.palletsprojects.com/
+    "click>=8.1",
     # https://www.sphinx-doc.org/en/master/
     "sphinx>=8.1",
     # https://pradyunsg.me/furo/
