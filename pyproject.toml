@@ -55,19 +55,19 @@ docs = [
 ]
 lint = [
     # https://docs.astral.sh/ruff/
-    "ruff>=0.11.0",
+    "ruff>=0.11.10",
     # https://mypy.readthedocs.io/en/stable/
     "mypy>=1.15",
 ]
 test = [
     # https://coverage.readthedocs.io/en/latest/
-    "coverage>=7.7",
+    "coverage>=7.8",
     # https://hypothesis.readthedocs.io/en/latest/
-    "hypothesis>=6.128",
+    "hypothesis>=6.130",
     # https://docs.pytest.org/en/latest/
     "pytest>=8.3",
     # https://pytest-cov.readthedocs.io/en/latest/
-    "pytest-cov>=6.0",
+    "pytest-cov>=6.1",
 ]
 
 [tool.hatch.version]
