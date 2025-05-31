@@ -43,7 +43,20 @@ def hlp(path: Path) -> str:
     ),
     default="html",
     show_default=True,
-    help="Select a builder.",
+    help="Builder to use for generating documentation.",
+)
+@click.option(
+    "--host",
+    default="127.0.0.1",
+    show_default=True,
+    help="Host to serve documentation on.",
+)
+@click.option(
+    "--port",
+    type=int,
+    default=0,
+    show_default=True,
+    help="Port to serve documentation on.",
 )
 @click.option(
     "--clean/--no-clean",
@@ -57,7 +70,9 @@ def hlp(path: Path) -> str:
     show_default=True,
     help="Whether or not to enable color output.",
 )
-def serve_docs(*, builder: str, clean: bool, color: str) -> None:
+def serve_docs(
+    *, builder: str, host: str, port: int, clean: bool, color: str
+) -> None:
     console = Console(soft_wrap=True, emoji=False, highlight=False)
     if not console.is_terminal:
         console.legacy_windows = False
@@ -91,7 +106,14 @@ def serve_docs(*, builder: str, clean: bool, color: str) -> None:
 
     console.rule(Text("Building", cyan))
 
-    cmd = [sys.executable, "-m", "sphinx_autobuild", "--open-browser"]
+    cmd = [
+        sys.executable,
+        "-m",
+        "sphinx_autobuild",
+        f"--host={host}",
+        f"--port={port}",
+        "--open-browser",
+    ]
     match color:
         case "yes":
             cmd.append("--color")
