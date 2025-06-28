@@ -2,6 +2,38 @@
 requires = ["hatchling>=1.27"]
 build-backend = "hatchling.build"
 
+[dependency-groups]
+docs = [
+    # https://click.palletsprojects.com/
+    "click>=8.1",
+    # https://www.sphinx-doc.org/en/master/
+    "sphinx>=8.1",
+    # https://pradyunsg.me/furo/
+    "furo>=2024.8",
+    # https://myst-parser.readthedocs.io/en/latest/
+    "myst-parser>=4.0",
+    # https://sphinx-copybutton.readthedocs.io/en/latest/
+    "sphinx-copybutton>=0.5.2",
+    # https://github.com/sphinx-doc/sphinx-autobuild
+    "sphinx-autobuild>=2024.10",
+]
+lint = [
+    # https://docs.astral.sh/ruff/
+    "ruff>=0.12.0",
+    # https://mypy.readthedocs.io/en/stable/
+    "mypy>=1.16",
+]
+test = [
+    # https://coverage.readthedocs.io/en/latest/
+    "coverage>=7.9",
+    # https://hypothesis.readthedocs.io/en/latest/
+    "hypothesis>=6.130",
+    # https://docs.pytest.org/en/latest/
+    "pytest>=8.4",
+    # https://pytest-cov.readthedocs.io/en/latest/
+    "pytest-cov>=6.2",
+]
+
 [project]
 name = "capf"
 description = "Command-line argument parser and framework"
@@ -39,38 +71,6 @@ Homepage = "https://github.com/xymy/capf"
 Download = "https://pypi.org/project/capf/"
 Source = "https://github.com/xymy/capf"
 Tracker = "https://github.com/xymy/capf/issues"
-
-[dependency-groups]
-docs = [
-    # https://click.palletsprojects.com/
-    "click>=8.1",
-    # https://www.sphinx-doc.org/en/master/
-    "sphinx>=8.1",
-    # https://pradyunsg.me/furo/
-    "furo>=2024.8",
-    # https://myst-parser.readthedocs.io/en/latest/
-    "myst-parser>=4.0",
-    # https://sphinx-copybutton.readthedocs.io/en/latest/
-    "sphinx-copybutton>=0.5.2",
-    # https://github.com/sphinx-doc/sphinx-autobuild
-    "sphinx-autobuild>=2024.10",
-]
-lint = [
-    # https://docs.astral.sh/ruff/
-    "ruff>=0.12.0",
-    # https://mypy.readthedocs.io/en/stable/
-    "mypy>=1.16",
-]
-test = [
-    # https://coverage.readthedocs.io/en/latest/
-    "coverage>=7.9",
-    # https://hypothesis.readthedocs.io/en/latest/
-    "hypothesis>=6.130",
-    # https://docs.pytest.org/en/latest/
-    "pytest>=8.4",
-    # https://pytest-cov.readthedocs.io/en/latest/
-    "pytest-cov>=6.2",
-]
 
 [tool.hatch.version]
 path = "src/capf/__init__.py"
