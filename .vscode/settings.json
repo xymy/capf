@@ -1,4 +1,7 @@
 {
+  "terminal.integrated.automationProfile.windows": {
+    "path": "cmd.exe"
+  },
   "[python]": {
     "editor.codeActionsOnSave": {
       "source.fixAll.ruff": "explicit",
